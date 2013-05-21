@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  
+	<!-- Bootstrap -->
+	<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Geocoding service</title>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&key=AIzaSyBeQ90rH0Ih1t1uCYKvZxDWs6qz84_6e08&sensor=false"></script>
+    <script>
+var geocoder;
+var map;
+function initialize() {
+  geocoder = new google.maps.Geocoder();
+  
+  var latlng = new google.maps.LatLng(35.772096, -78.63861450000002);
+}
+
+function codeAddress() {
+  var address = document.getElementById('street').value+" "+document.getElementById('city').value+", NC";
+  var swBound = new google.maps.LatLng(33.840969, -84.32186899999999);
+  var neBound = new google.maps.LatLng(36.5881568, -75.45995149999999);
+  bounds =  new google.maps.LatLngBounds(swBound,neBound);
+  
+  geocoder.geocode( { 'address': address, 'bounds': bounds}, function(results, status) {
+    if (status == google.maps.GeocoderStatus.OK) {
+	  document.getElementById("map-canvas").innerHTML="<table class='table table-condensed'><tr class='success'><td><p class='text-center'>"+results[0].geometry.location+"</p></td></tr></table>";
+    } else {
+      alert('Geocode was not successful for the following reason: ' + status);
+    }
+  });
+}
+
+google.maps.event.addDomListener(window, 'load', initialize);
+
+    </script>
+  </head>
+  <body>
+  <form class="form-horizontal">
+    <div id="panel">
+	  <div class="control-group">
+		<label class="control-label" for="inputStreet">Street Address</label>
+			<div class="controls">
+				<div class="input-prepend">
+				<input type="text" id="street" class="input-medium search-query"  placeholder="Street Address">
+			</div>
+	  </div>
+	  <div class="control-group">
+		<label class="control-label" for="inputCity">City</label>
+			<div class="controls">
+				<input type="text" id="city" class="input-medium search-query"  placeholder="City">
+							
+			<input type="button" class="btn btn-primary" onclick="codeAddress()" value="Geocode" />
+			</div>
+
+	  </div>
+	  <br />
+	  <br />
+      
+    </div>
+	</form>
+    <div id="map-canvas" class="container"></div>
+  </body>
+</html>
+
