@@ -7,14 +7,16 @@ function initialize() {
 	geocoder = new google.maps.Geocoder();
 
 	if (checkCookie("ir_state") && checkCookie("ir_district_lower") && checkCookie("ir_district_upper")) {
-		element("locationMss").innerHTML = "Your residential region (but not your exact address) has been stored locally<br /><br />";
+		element("locationMss").innerHTML = "Your residential region (but not your exact address) has been stored locally.<br /><br />";
 		initWithLatLong();
 		gotoSearchTab();
+	} else {
+		element("name").innerHTML = 'Please enter your location in the "Change Location" tab.';
 	}
 }
 
 function currentLocation() {
-	element("locationMss").innerHTML = "Your residential region (but not your exact address) has been stored locally<br /><br />";
+	element("locationMss").innerHTML = "Your residential region (but not your exact address) has been stored locally.<br /><br />";
 	initWithLatLong();
 	gotoSearchTab();
 }
@@ -32,8 +34,6 @@ function codeAddress() {
   
   geocoder.geocode( { 'address': address, 'bounds': bounds}, function(results, status) {
 	if (status == google.maps.GeocoderStatus.OK) {
-	  // Convert the formating to something usable by the other part of the scipt
-	  // init( {coords: { latitude: results[0].geometry.location.jb, longitude: results[0].geometry.location.kb } } );
 	  getLatLongLegislators(results[0].geometry.location.jb, results[0].geometry.location.kb);
 	  gotoSearchTab();
 	} else {
@@ -61,45 +61,45 @@ function isNumeric(n) {
 
 function initWithLatLong() {
 	if (navigator.geolocation) {
-		navigator.geolocation.getCurrentPosition(init);
-	} else {
-		element("name").innerHTML += "Geolocation is not supported by this browser.";
-	}
-}
-
-function init(pos) {
-	var lat = pos.coords.latitude,
-		long = pos.coords.longitude;
+		element("name").innerHTML = "Loading...";
 		
-	// Get state
-	if (checkCookie("ir_state") && checkCookie("ir_district_lower") && checkCookie("ir_district_upper")) {
-		var c_state = getCookie("ir_state"),
-			c_district_lower = getCookie("ir_district_lower"),
-			c_district_upper = getCookie("ir_district_upper");
-		
-		// Have both state and district, use them to lookup
-		getStateDistrictsLegislators(c_state, c_district_lower, c_district_upper);
-		element("state").value = c_state;
-		element("district_lower").value = c_district_lower;
-		element("district_upper").value = c_district_upper;
-	} else {
-		$.ajax({
-			url: 'http://maps.googleapis.com/maps/api/geocode/json?latlng=' + lat + ',' + long + '&sensor=false',
-			dataType: 'json',
-			success: function(json) {
-				var addrs = json.results[0].address_components, lng = addrs.length;
-				for (var i=0; i<lng; i++) {
-					if (addrs[i].types[0] === "administrative_area_level_1") {
-						setCookie("ir_state", addrs[i].short_name, 365);
-						element("state").value = addrs[i].short_name;
-						break;
+		navigator.geolocation.getCurrentPosition(function(pos) {
+			var lat = pos.coords.latitude,
+				long = pos.coords.longitude;
+				
+			// Get state
+			if (checkCookie("ir_state") && checkCookie("ir_district_lower") && checkCookie("ir_district_upper")) {
+				var c_state = getCookie("ir_state"),
+					c_district_lower = getCookie("ir_district_lower"),
+					c_district_upper = getCookie("ir_district_upper");
+				
+				// Have both state and district, use them to lookup
+				getStateDistrictsLegislators(c_state, c_district_lower, c_district_upper);
+				element("state").value = c_state;
+				element("district_lower").value = c_district_lower;
+				element("district_upper").value = c_district_upper;
+			} else {
+				$.ajax({
+					url: 'http://maps.googleapis.com/maps/api/geocode/json?latlng=' + lat + ',' + long + '&sensor=false',
+					dataType: 'json',
+					success: function(json) {
+						var addrs = json.results[0].address_components, lng = addrs.length;
+						for (var i=0; i<lng; i++) {
+							if (addrs[i].types[0] === "administrative_area_level_1") {
+								setCookie("ir_state", addrs[i].short_name, 365);
+								element("state").value = addrs[i].short_name;
+								break;
+							}
+						}			
 					}
-				}			
+				});
+				
+				// Use latitude and longitude to find legislators
+				getLatLongLegislators(lat, long);
 			}
 		});
-		
-		// Use latitude and longitude to find legislators
-		getLatLongLegislators(lat, long);
+	} else {
+		element("name").innerHTML += "Geolocation is not supported by this browser.";
 	}
 }
 
