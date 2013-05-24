@@ -1,0 +1,11 @@
+.content * {
+	display: table;
+	margin: 0 auto;
+}
+.content i { 
+	display: inline; 
+}
+
+.desc {
+	min-height: 100px;
+}

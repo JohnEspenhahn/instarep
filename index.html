@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Instarep</title>
+	<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+	<meta charset="utf-8">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&key=AIzaSyBeQ90rH0Ih1t1uCYKvZxDWs6qz84_6e08&sensor=false"></script>
+	<script src="bootstrap/js/bootstrap.js"></script>
+	<script src="script.js"></script>
+	<script>
+		// Enable bootstrap tabs
+		$('#tabs a').click(function (e) {
+			e.preventDefault();
+			$(this).tab('show');
+		})
+	  
+		$(function () {
+			$('#tabs a[href="#search"]').tab('show');
+			$('#tabs a[href="#addressLoc"]').tab('show');
+		})
+	</script>
+</head>
+<body>
+	<ul class="nav nav-tabs" id="tabs">
+	  <li><a href="#addressLoc" data-toggle="tab">Change Location</a></li>
+	  <li><a href="#search" data-toggle="tab">Perform Search</a></li>
+	</ul>
+
+	<div class="tab-content">
+		<div class="tab-pane" id="addressLoc">
+			<form class="form-horizontal">
+			<div id="locationMss" class="container"></div>
+			<div id="panel">
+			  <div class="control-group">
+				<label class="control-label" for="inputStreet">State</label>
+					<div class="controls">
+						<div class="input-prepend">
+							<input type="text" id="locState" class="input-medium search-query" placeholder="State" value="NC" readonly>
+						</div>
+					</div>
+			  </div>
+			  <div class="control-group">
+				<label class="control-label" for="inputStreet">Street Address</label>
+					<div class="controls">
+						<div class="input-prepend">
+							<input type="text" id="locStreet" class="input-medium search-query"  placeholder="Street Address">
+						</div>
+					</div>
+			  </div>
+			  <div class="control-group">
+				<label class="control-label" for="inputCity">City</label>
+					<div class="controls">
+						<input type="text" id="locCity" class="input-medium search-query"  placeholder="City">
+						<input type="button" class="btn btn-primary" onclick="codeAddress()" value="Update Location" />
+					</div>
+			  </div>
+			  <div class="control-group">
+				 <div class="controls">
+					<input type="button" class="btn btn-primary" onclick="currentLocation()" value="My Current Location Is Correct" />
+				 </div>
+			  </div>
+			</div>
+			</form>
+		</div>
+		
+		<div class="tab-pane" id="search">
+			<form class="form-horizontal" action="javascript:search()">
+			<div id="panel">
+			  <!--
+			  // This makes the state, upper, and lower districts editable
+			  <div class="control-group">
+				<label class="control-label" for="inputStreet">State</label>
+					<div class="controls">
+						<div class="input-prepend">
+							<input type="text" id="state" class="input-medium search-query"  placeholder="State (ex: NC)">
+						</div>
+					</div>
+			  </div>
+			  
+			  <div class="control-group">
+				<label class="control-label" for="inputCity">House District</label>
+					<div class="controls">
+						<input type="text" id="district_lower" class="input-medium search-query"  placeholder="House District (ex: 6)">
+					</div>
+			  </div>
+			  <div class="control-group">
+				<label class="control-label" for="inputCity">Senate District</label>
+					<div class="controls">
+						<input type="text" id="district_upper" class="input-medium search-query"  placeholder="Senate District (ex: 6)">
+					</div>
+			  </div>
+			  -->
+			  
+			  <input type="hidden" id="state">
+			  <input type="hidden" id="district_lower">
+			  <input type="hidden" id="district_upper">
+			  
+			  <div class="control-group">
+				<label class="control-label" for="inputCity">Bill Id</label>
+					<div class="controls">
+						<input type="text" id="bill_id" class="input-medium search-query"  placeholder="Bill Id (ex: HB100)">
+					<input type="button" class="btn btn-primary" onclick="search()" value="Submit" />
+					</div>
+			  </div>
+			  
+			  <!--Temp Info-->
+			  <span id="reps" name="reps"></span>
+			</div>
+			</form>
+			
+			<div id="map-canvas" class="container">
+				<h3>Your Local Representatives:</h3>
+				<span id="name">Loading...</span>
+				<span id="bill_desc" class="desc"></span>
+			</div>
+		</div>
+	</div>	
+</body>
+</html>

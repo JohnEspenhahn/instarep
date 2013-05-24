@@ -1,3 +1,56 @@
+///////////////////////
+// Address to LatLong
+///////////////////////
+var geocoder;
+var map;
+function initialize() {
+	geocoder = new google.maps.Geocoder();
+
+	if (checkCookie("ir_state") && checkCookie("ir_district_lower") && checkCookie("ir_district_upper")) {
+		element("locationMss").innerHTML = "Your residential region (but not your exact address) has been stored locally<br /><br />";
+		initWithLatLong();
+		gotoSearchTab();
+	}
+}
+
+function currentLocation() {
+	element("locationMss").innerHTML = "Your residential region (but not your exact address) has been stored locally<br /><br />";
+	initWithLatLong();
+	gotoSearchTab();
+}
+
+function codeAddress() {
+  if (element("state").value !== "NC" || element("locState").value !== "NC") {
+	alert("I'm sorry, the address lookup currenly only works in NC.");
+	return;
+  }
+
+  var address = document.getElementById('locStreet').value+" "+document.getElementById('locCity').value+", "+document.getElementById('locState').value;
+  var swBound = new google.maps.LatLng(33.840969, -84.32186899999999);
+  var neBound = new google.maps.LatLng(36.5881568, -75.45995149999999);
+  bounds =  new google.maps.LatLngBounds(swBound,neBound);
+  
+  geocoder.geocode( { 'address': address, 'bounds': bounds}, function(results, status) {
+	if (status == google.maps.GeocoderStatus.OK) {
+	  // Convert the formating to something usable by the other part of the scipt
+	  // init( {coords: { latitude: results[0].geometry.location.jb, longitude: results[0].geometry.location.kb } } );
+	  getLatLongLegislators(results[0].geometry.location.jb, results[0].geometry.location.kb);
+	  gotoSearchTab();
+	} else {
+	  alert('Geocode was not successful for the following reason: ' + status);
+	}
+  });
+}
+
+google.maps.event.addDomListener(window, 'load', initialize);
+
+///////////////////////
+// Instarep Lookup
+///////////////////////
+function gotoSearchTab() {
+	$('#tabs a[href="#search"]').tab("show");
+}
+
 function element(id) {
 	return document.getElementById(id);
 }
@@ -6,7 +59,7 @@ function isNumeric(n) {
   return !isNaN(parseFloat(n)) && isFinite(n);
 }
 
-function getLatLon() {
+function initWithLatLong() {
 	if (navigator.geolocation) {
 		navigator.geolocation.getCurrentPosition(init);
 	} else {
@@ -53,7 +106,9 @@ function init(pos) {
 
 function getLatLongLegislators(lat, long) {
 	window.repsLoaded = false;
+	clearInfo();
 	element("name").innerHTML = "Loading...";
+	element("reps").innerHTML = "";
 	
 	$.ajax({
 		url: 'http://openstates.org/api/v1/legislators/geo/?lat=' + lat + '&long=' + long + '&active=true&apikey=18cdbb31b096462985cf408a5a41d3af',
@@ -72,7 +127,8 @@ function getLatLongLegislators(lat, long) {
 			for(var i=0; i<lng; i++) {
 				val = json[i];
 				
-				if (!val.active) continue;
+				if (!val.active || (val.chamber !== "lower" && val.chamber !== "upper")) 
+					continue;
 				
 				// For search
 				element("reps").innerHTML += "<input type='hidden' id='rep" + i + "' value='" + json[i].leg_id + "'>";
@@ -81,9 +137,7 @@ function getLatLongLegislators(lat, long) {
 				
 				// Display
 				text += "<tr><td>" + val.chamber + "</td><td>" + val.party + "</td><td>" + val.full_name + "</td><td>"
-				if (val.offices.length > 0 && val.offices[0].email != null) {
-					text += "<a href='mailto:" + val.offices[0].email + "'>" + val.offices[0].email + "</a>";
-				} else text += "None";
+				text += "<a href='mailto:" + val.email + "'>" + val.email + "</a>";
 				text += "</td><td id='rep" + i + "_vote'>N/A</td></tr>";
 			}
 			text += "</table>";
@@ -96,7 +150,7 @@ function getLatLongLegislators(lat, long) {
 			var results = new RegExp("[\\?&]bill=([^&#]*)").exec(window.location.search);
 			if (results != null) {
 				element("bill_id").value = decodeURIComponent(results[1]);
-				submit();
+				search();
 			}
 		},
 		error: function() { window.alert("Error"); }
@@ -105,6 +159,7 @@ function getLatLongLegislators(lat, long) {
 
 function getStateDistrictsLegislators(state, lower_district, upper_district) {
 	window.repsLoaded = false;
+	clearInfo();
 	element("name").innerHTML = "Loading...";
 	element("reps").innerHTML = "";
 	var text = "<table border='1'><tr style='font-style: italic'><td>Chamber</td><td>Party</td><td>Full Name</td><td>Email</td><td>Vote</td></tr>",
@@ -130,9 +185,7 @@ function getStateDistrictsLegislators(state, lower_district, upper_district) {
 				
 				// Display
 				text += "<tr><td>Lower</td><td>" + val.party + "</td><td>" + val.full_name + "</td><td>"
-				if (val.offices.length > 0 && val.offices[0].email != null) {
-					text += "<a href='mailto:" + val.offices[0].email + "'>" + val.offices[0].email + "</a>";
-				} else text += "None";
+				text += "<a href='mailto:" + val.email + "'>" + val.email + "</a>";
 				text += "</td><td id='rep" + (lowIt+upIt) + "_vote'>N/A</td></tr>";
 			}
 			
@@ -156,9 +209,7 @@ function getStateDistrictsLegislators(state, lower_district, upper_district) {
 						
 						// Display
 						text += "<tr><td>Upper</td><td>" + val.party + "</td><td>" + val.full_name + "</td><td>"
-						if (val.offices.length > 0 && val.offices[0].email != null) {
-							text += "<a href='mailto:" + val.offices[0].email + "'>" + val.offices[0].email + "</a>";
-						} else text += "None";
+						text += "<a href='mailto:" + val.email + "'>" + val.email + "</a>";
 						text += "</td><td id='rep" + (lowIt+upIt) + "_vote'>N/A</td></tr>";
 					}
 					text += "</table>";
@@ -171,7 +222,7 @@ function getStateDistrictsLegislators(state, lower_district, upper_district) {
 					var results = new RegExp("[\\?&]bill=([^&#]*)").exec(window.location.search);
 					if (results != null) {
 						element("bill_id").value = decodeURIComponent(results[1]);
-						submit();
+						search();
 					}
 				},
 				error: function() { window.alert("Error"); }
@@ -181,16 +232,22 @@ function getStateDistrictsLegislators(state, lower_district, upper_district) {
 	});
 }
 
-function submit() {
+function clearInfo() {
+	var docReps = document.getElementsByName("reps")[0].childNodes, lng = docReps.length, reps = new Array(lng);
+	for (var i=0; i<lng; i++) {
+		element(docReps[i].id + "_vote").innerHTML = "N/A";
+	}
+	
+	element("bill_desc").innerHTML = "";
+}
+
+function search() {
 	if (window.repsLoaded !== true) {
 		element("bill_desc").innerHTML = "Still trying to load your local representatives";
 		return;
 	}
 
-	var docReps = document.getElementsByName("reps")[0].childNodes, lng = docReps.length, reps = new Array(lng);
-	for (var i=0; i<lng; i++) {
-		element(docReps[i].id + "_vote").innerHTML = "N/A";
-	}
+	clearInfo();
 	
 	var bill_id = element("bill_id").value,
 		split_bill = (bill_id.trim().match(/([a-zA-Z]+|\s+|\d+)/g) || []),
