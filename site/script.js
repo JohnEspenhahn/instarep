@@ -235,7 +235,9 @@ function getStateDistrictsLegislators(state, lower_district, upper_district) {
 function clearInfo() {
 	var docReps = document.getElementsByName("reps")[0].childNodes, lng = docReps.length, reps = new Array(lng);
 	for (var i=0; i<lng; i++) {
-		element(docReps[i].id + "_vote").innerHTML = "N/A";
+		var elmnt = element(docReps[i].id + "_vote");
+		if (elmnt !== null)
+			elmnt.innerHTML = "N/A";
 	}
 	
 	element("bill_desc").innerHTML = "";
