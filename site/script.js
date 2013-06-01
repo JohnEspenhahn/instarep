@@ -300,6 +300,8 @@ function search() {
 			var lng = json.length;
 			if (lng <= 0) {
 				element("bill_desc").innerHTML = "No bill found with the search '" + bill_id + "'. To search a house bill use HB, or SB for senate bill.";
+				// Clear the timeout timer
+				window.clearTimeout(window.submitTimer);
 				return;
 			} else {
 				json = json[lng - 1];
