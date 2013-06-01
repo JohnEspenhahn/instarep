@@ -127,7 +127,7 @@ function getLatLongLegislators(lat, long) {
 				
 			text += "<table border='1'><tr style='font-style: italic'><td>Chamber</td><td>Party</td><td>Full Name</td><td>Email</td><td>Vote</td></tr>";
 			for(var i=0; i<lng; i++) {
-				val = json[i];
+				val = json[json.length - 1];
 				
 				if (!val.active || (val.chamber !== "lower" && val.chamber !== "upper")) 
 					continue;
