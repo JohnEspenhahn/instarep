@@ -166,7 +166,7 @@ function getStateDistrictsLegislators(state, lower_district, upper_district) {
 	clearInfo();
 	element("name").innerHTML = "Loading...";
 	element("reps").innerHTML = "";
-	var text = "<table border='1' cellpadding='3'><tr style='font-style: italic'><td>Chamber</td><td>Party</td><td>Full Name</td><td>Email</td><td>Vote</td></tr>",
+	var text = "<table border='1' cellpadding='5'><tr style='font-style: italic'><td>Chamber</td><td>Party</td><td>Full Name</td><td>Email</td><td>Vote</td></tr>",
 		upIt = 0, lowIt = 0;
 	
 	// Lower chamber (house)
