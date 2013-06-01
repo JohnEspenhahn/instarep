@@ -22,10 +22,12 @@ function currentLocation() {
 }
 
 function codeAddress() {
-  if (element("state").value !== "NC" || element("locState").value !== "NC") {
+  var locStateElm = element("locState");
+  if (locStateElm.value !== "NC") {
 	alert("I'm sorry, the address lookup currenly only works in NC.");
 	return;
   }
+  element("state").value = locStateElm.value;
 
   var address = document.getElementById('locStreet').value+" "+document.getElementById('locCity').value+", "+document.getElementById('locState').value;
   var swBound = new google.maps.LatLng(33.840969, -84.32186899999999);
@@ -48,6 +50,7 @@ google.maps.event.addDomListener(window, 'load', initialize);
 // Instarep Lookup
 ///////////////////////
 function gotoSearchTab() {
+	updateCookies();
 	$('#tabs a[href="#search"]').tab("show");
 }
 
@@ -119,7 +122,7 @@ function getLatLongLegislators(lat, long) {
 				
 			element("reps").innerHTML = "";
 			if (lng <= 0) {
-				element("name").innerHTML = "No representatives found. Are the state and district values entered valid?";
+				element("name").innerHTML = "No representatives found.";
 				return;
 			}
 				
@@ -243,25 +246,14 @@ function clearInfo() {
 	element("bill_desc").innerHTML = "";
 }
 
-function search() {
-	if (window.repsLoaded !== true) {
-		element("bill_desc").innerHTML = "Still trying to load your local representatives";
-		return;
-	}
-
-	clearInfo();
-	
-	var bill_id = element("bill_id").value,
-		split_bill = (bill_id.trim().match(/([a-zA-Z]+|\s+|\d+)/g) || []),
-		year = (new Date()).getFullYear(),
+function updateCookies() {
+	var locChange = false,
 		state = element("state").value.toUpperCase(),
-		district_lower = element("district_lower").value.toUpperCase(),
-		district_upper = element("district_upper").value.toUpperCase();
+		district_lower = element("district_lower").value,
+		district_upper = element("district_upper").value;
 		
-	// Update state and district cookies if different
-	var locChange = false;
 	if (getCookie("ir_state") != state) {
-		setCookie("ir_state", state, 365);
+		setCookie("ir_state", element("state").value.toUpperCase(), 365);
 		locChange = true;
 	}
 	if (getCookie("ir_district_lower") != district_lower) {
@@ -273,19 +265,24 @@ function search() {
 		locChange = true;
 	}
 	if (locChange) getStateDistrictsLegislators(state, district_lower, district_upper);
-		
-	// Format the bill id
-	if (split_bill.length == 2 && split_bill[0].search(/^[a-zA-Z]+/) == 0 && split_bill[1].search(/^\d+/) == 0)
-		bill_id = (split_bill[0] + " " + split_bill[1]).toUpperCase();
-	else if (split_bill.length == 3 && split_bill[0].search(/^[a-zA-Z]+/) == 0 && split_bill[1].search(/^\s+/) == 0 && split_bill[2].search(/^\d+/) == 0)
-		bill_id = (split_bill[0] + " " + split_bill[2]).toUpperCase();
-	else {
-		element("bill_desc").innerHTML = "Invalid Bill Id \"<i>" + bill_id + "</i>\"";
+}
+
+function search() {
+	if (window.repsLoaded !== true) {
+		element("bill_desc").innerHTML = "Still trying to load your local representatives";
 		return;
 	}
+
+	clearInfo();
+	
+	var bill_id = element("bill_id").value,
+		state = element("state").value.toUpperCase();
+		
+	// Update state and district cookies if different
+	updateCookies();
 	
 	// Create the search string
-	var searchStr = "http://openstates.org/api/v1/bills/" + state + "/" + year + "/" + bill_id + "/?apikey=18cdbb31b096462985cf408a5a41d3af";
+	var searchStr = "http://openstates.org/api/v1/bills/?state=" + state + "&search_window=session&q=" + bill_id + "&fields=votes,title,bill_id,chamber,sources&apikey=18cdbb31b096462985cf408a5a41d3af";
 	
 	element("bill_desc").innerHTML = "Loading <i>" + bill_id + "</i>...";
 	
@@ -297,6 +294,9 @@ function search() {
 		url: searchStr,
 		dataType: 'jsonp',
 		success: function(json) {
+			// Pull the first bill
+			json = json[0];
+		
 			window.clearTimeout(window.submitTimer);
 		
 			// No vote yet
