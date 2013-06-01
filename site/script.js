@@ -105,7 +105,6 @@ function initWithLatLong() {
 	}
 }
 
-
 function getLatLongLegislators(lat, long) {
 	window.repsLoaded = false;
 	clearInfo();
@@ -270,6 +269,95 @@ function updateCookies() {
 	if (locChange) getStateDistrictsLegislators(state, district_lower, district_upper);
 }
 
+// Called to display the bill
+//   jsonBillId: The bill index of the json to display in detail
+function displayOtherBills(jsonBillId) {
+	// Clear the info from the previous bill
+	clearInfo();
+
+	if (window.lastSearchJson.length > 1) {
+		element("other_bills").innerHTML = "<p><h6>Other matching bills:</h6><ul>";
+		for (var i=window.lastSearchJson.length - 1; i>=0; i--) {
+			if (i == jsonBillId) {
+				element("other_bills").innerHTML += "<li><a href='javascript:displayOtherBills(" + i + ");'><b>" + window.lastSearchJson[i].title + "</b></a></li>";
+			} else {
+				element("other_bills").innerHTML += "<li><a href='javascript:displayOtherBills(" + i + ");'>" + window.lastSearchJson[i].title + "</a></li>";
+			}
+		}
+	} else {
+		element("other_bills").innerHTML = "";
+	}
+	
+	tableJson = window.lastSearchJson[jsonBillId];
+	// No vote yet
+	if (tableJson.votes.length <= 0) {
+		element("bill_desc").innerHTML = "No votes on <i>" + tableJson.title + " (" + tableJson.bill_id + ")</i>.";
+		printSources(tableJson.sources);
+		return true;
+	} else {
+		var mss = "Latest vote on <i>" + tableJson.title + " (" + tableJson.bill_id + ")</i> of the " + tableJson.chamber + " chamber. <br />"
+		element("bill_desc").innerHTML = mss
+		printSources(tableJson.sources);
+	}
+
+	// Read votes
+	var votes = tableJson.votes[tableJson.votes.length-1],
+		yes_votes = votes.yes_votes, yes_count = yes_votes.length,
+		no_votes = votes.no_votes, no_count = no_votes.length,
+		other_votes = votes.other_votes, other_count = other_votes.length;
+	
+	// Read representatives
+	var docReps = document.getElementsByName("reps")[0].childNodes, lng = docReps.length, reps = new Array(lng);
+	for (var i=0; i<lng; i++) {
+		reps[i] = { voteDocId: docReps[i].id + "_vote", leg_id: docReps[i].value };
+	}
+	
+	// Find representative's vote
+	var i, j, r, found;
+	for (i=0; i<lng; i++) {
+		found = false;
+		r = reps[i];
+		for (j=0; j<yes_count; j++) {
+			if (yes_votes[j].leg_id == r.leg_id) {
+				element(r.voteDocId).innerHTML = "Yes";
+				found = true;
+				break;
+			}
+		}
+		if (found) continue; // No need to do other loops
+		
+		for (j=0; j<no_count; j++) {
+			if (no_votes[j].leg_id == r.leg_id) {
+				element(r.voteDocId).innerHTML = "No";
+				found = true;
+				break;
+			}
+		}
+		if (found) continue; // No need to do last loop
+		
+		for (j=0; j<other_count; j++) {
+			if (other_votes[j].leg_id == r.leg_id) {
+				element(r.voteDocId).innerHTML = "Absent";
+				break;
+			}
+		}
+	}
+	
+	// Print the sources of the result
+	function printSources(sources) {
+		if (sources.length <= 0) return;
+
+		var mss = "<h6> Sources: <br />";
+			
+		for (var i=0; i<sources.length; i++) {
+			mss += "<a target='_blank' href='" + sources[i].url + "'>Source " + i + "</a> <br />";
+		}
+		mss += "</h6>";
+		
+		element("bill_desc").innerHTML += mss
+	}
+}
+
 function search() {
 	if (window.repsLoaded !== true) {
 		element("bill_desc").innerHTML = "Still trying to load your local representatives";
@@ -285,7 +373,7 @@ function search() {
 	updateCookies();
 	
 	// Create the search string
-	var searchStr = "http://openstates.org/api/v1/bills/?state=" + state + "&search_window=session&q=" + bill_id + "&fields=votes,title,bill_id,chamber,sources&apikey=18cdbb31b096462985cf408a5a41d3af";
+	var searchStr = "http://openstates.org/api/v1/bills/?state=" + state + "&search_window=session&q=" + bill_id + "&fields=votes,votes.yes_votes,votes.no_votes,votes.other_votes,title,bill_id,chamber,sources&apikey=18cdbb31b096462985cf408a5a41d3af";
 	
 	element("bill_desc").innerHTML = "Loading <i>" + bill_id + "</i>...";
 	
@@ -297,7 +385,7 @@ function search() {
 		url: searchStr,
 		dataType: 'jsonp',
 		success: function(json) {
-			var lng = json.length;
+			var lng = json.length, tableJson;
 			if (lng <= 0) {
 				element("bill_desc").innerHTML = "No bill found with the search '" + bill_id + "'.";
 				if (bill_id.length > 1) {
@@ -312,63 +400,10 @@ function search() {
 				window.clearTimeout(window.submitTimer);
 				return;
 			} else {
-				json = json[lng - 1];
-			}
-		
-			window.clearTimeout(window.submitTimer);
-		
-			// No vote yet
-			if (json.votes.length <= 0) {
-				element("bill_desc").innerHTML = "No votes on <i>" + json.title + " (" + json.bill_id + ")</i>.";
-				printSources(json.sources);
-				return true;
-			} else {
-				var mss = "Latest vote on <i>" + json.title + " (" + json.bill_id + ")</i> of the " + json.chamber + " chamber. <br />"
-				element("bill_desc").innerHTML = mss
-				printSources(json.sources);
-			}
-		
-			// Read votes
-			var votes = json.votes[json.votes.length-1],
-				yes_votes = votes.yes_votes, yes_count = yes_votes.length,
-				no_votes = votes.no_votes, no_count = no_votes.length,
-				other_votes = votes.other_votes, other_count = other_votes.length;
-			
-			// Read representatives
-			var docReps = document.getElementsByName("reps")[0].childNodes, lng = docReps.length, reps = new Array(lng);
-			for (var i=0; i<lng; i++) {
-				reps[i] = { voteDocId: docReps[i].id + "_vote", leg_id: docReps[i].value };
-			}
-			
-			// Find representative's vote
-			var i, j, r, found;
-			for (i=0; i<lng; i++) {
-				found = false;
-				r = reps[i];
-				for (j=0; j<yes_count; j++) {
-					if (yes_votes[j].leg_id == r.leg_id) {
-						element(r.voteDocId).innerHTML = "Yes";
-						found = true;
-						break;
-					}
-				}
-				if (found) continue; // No need to do other loops
+				window.clearTimeout(window.submitTimer);
+				window.lastSearchJson = json;
 				
-				for (j=0; j<no_count; j++) {
-					if (no_votes[j].leg_id == r.leg_id) {
-						element(r.voteDocId).innerHTML = "No";
-						found = true;
-						break;
-					}
-				}
-				if (found) continue; // No need to do last loop
-				
-				for (j=0; j<other_count; j++) {
-					if (other_votes[j].leg_id == r.leg_id) {
-						element(r.voteDocId).innerHTML = "Absent";
-						break;
-					}
-				}
+				return displayOtherBills(lng - 1);
 			}
 		},
 		error: function() { window.alert("Error"); }
@@ -376,19 +411,6 @@ function search() {
 	
 	function submitTimeout() {
 		element("bill_desc").innerHTML = "Load bill timed out. Are you sure you entered a valid bill?";
-	}
-	
-	function printSources(sources) {
-		if (sources.length <= 0) return;
-
-		var mss = "<h6> Sources: <br />";
-			
-		for (var i=0; i<sources.length; i++) {
-			mss += "<a target='_blank' href='" + sources[i].url + "'>Source " + i + "</a> <br />";
-		}
-		mss += "</h6>";
-		
-		element("bill_desc").innerHTML += mss
 	}
 }
 
