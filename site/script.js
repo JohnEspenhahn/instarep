@@ -50,7 +50,6 @@ google.maps.event.addDomListener(window, 'load', initialize);
 // Instarep Lookup
 ///////////////////////
 function gotoSearchTab() {
-	updateCookies();
 	$('#tabs a[href="#search"]').tab("show");
 }
 
@@ -155,6 +154,8 @@ function getLatLongLegislators(lat, long) {
 				element("bill_id").value = decodeURIComponent(results[1]);
 				search();
 			}
+			
+			updateCookies();
 		},
 		error: function() { window.alert("Error"); }
 	});
@@ -187,7 +188,7 @@ function getStateDistrictsLegislators(state, lower_district, upper_district) {
 				setCookie("ir_district_lower", val.district, 365);
 				
 				// Display
-				text += "<tr><td>Lower</td><td>" + val.party + "</td><td>" + val.full_name + "</td><td>"
+				text += "<tr><td>House</td><td>" + val.party + "</td><td>" + val.full_name + "</td><td>"
 				text += "<a href='mailto:" + val.email + "'>" + val.email + "</a>";
 				text += "</td><td id='rep" + (lowIt+upIt) + "_vote'>N/A</td></tr>";
 			}
@@ -211,7 +212,7 @@ function getStateDistrictsLegislators(state, lower_district, upper_district) {
 						setCookie("ir_district_upper", val.district, 365);
 						
 						// Display
-						text += "<tr><td>Upper</td><td>" + val.party + "</td><td>" + val.full_name + "</td><td>"
+						text += "<tr><td>Senate</td><td>" + val.party + "</td><td>" + val.full_name + "</td><td>"
 						text += "<a href='mailto:" + val.email + "'>" + val.email + "</a>";
 						text += "</td><td id='rep" + (lowIt+upIt) + "_vote'>N/A</td></tr>";
 					}
@@ -227,6 +228,8 @@ function getStateDistrictsLegislators(state, lower_district, upper_district) {
 						element("bill_id").value = decodeURIComponent(results[1]);
 						search();
 					}
+					
+					updateCookies();
 				},
 				error: function() { window.alert("Error"); }
 			});
