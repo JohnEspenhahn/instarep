@@ -356,7 +356,7 @@ function displayOtherBills(jsonBillId) {
 		}
 		mss += "</h6>";
 		
-		element("bill_desc").innerHTML += mss
+		element("sources").innerHTML += mss
 	}
 }
 
