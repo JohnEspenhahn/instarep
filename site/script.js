@@ -155,6 +155,7 @@ function getLatLongLegislators(lat, long) {
 			}
 			
 			updateCookies();
+			clearInfo();
 		},
 		error: function() { window.alert("Error"); }
 	});
@@ -229,6 +230,7 @@ function getStateDistrictsLegislators(state, lower_district, upper_district) {
 					}
 					
 					updateCookies();
+					clearInfo();
 				},
 				error: function() { window.alert("Error"); }
 			});
@@ -246,6 +248,7 @@ function clearInfo() {
 	}
 	
 	element("bill_desc").innerHTML = "";
+	element("other_bills").innerHTML = "";
 }
 
 function updateCookies() {
@@ -284,8 +287,6 @@ function displayOtherBills(jsonBillId) {
 				element("other_bills").innerHTML += "<li><a href='javascript:displayOtherBills(" + i + ");'>" + window.lastSearchJson[i].title + "</a></li>";
 			}
 		}
-	} else {
-		element("other_bills").innerHTML = "";
 	}
 	
 	tableJson = window.lastSearchJson[jsonBillId];
