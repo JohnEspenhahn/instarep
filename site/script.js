@@ -350,7 +350,8 @@ function displayOtherBills(jsonBillId) {
 		var mss = "<h6> Sources: <br />";
 			
 		for (var i=0; i<sources.length; i++) {
-			mss += "<a target='_blank' href='" + sources[i].url + "'>Source " + i + "</a> <br />";
+			// mss += "<a target='_blank' href='" + sources[i].url + "'>Source " + i + "</a> <br />";
+			mss += "<a target='_blank' href='" + sources[i].url + "'>" + sources[i].url.match(/\/\/(.+)\//)[1] + "</a> <br />";
 		}
 		mss += "</h6>";
 		
