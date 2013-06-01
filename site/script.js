@@ -126,8 +126,8 @@ function getLatLongLegislators(lat, long) {
 			}
 				
 			text += "<table border='1'><tr style='font-style: italic'><td>Chamber</td><td>Party</td><td>Full Name</td><td>Email</td><td>Vote</td></tr>";
-			for(var i=0; i<lng; i++) {
-				val = json[json.length - 1];
+			for(var i=json.length-1; i>=0; i--) {
+				val = json[i];
 				
 				if (!val.active || (val.chamber !== "lower" && val.chamber !== "upper")) 
 					continue;
@@ -297,8 +297,13 @@ function search() {
 		url: searchStr,
 		dataType: 'jsonp',
 		success: function(json) {
-			// Pull the first bill
-			json = json[0];
+			var lng = json.length;
+			if (lng <= 0) {
+				element("bill_desc").innerHTML = "No bill found with the search '" + bill_id + "'. To search a house bill use HB, or SB for senate bill.";
+				return;
+			} else {
+				json = json[lng - 1];
+			}
 		
 			window.clearTimeout(window.submitTimer);
 		
