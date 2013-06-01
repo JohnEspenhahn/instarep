@@ -299,7 +299,15 @@ function search() {
 		success: function(json) {
 			var lng = json.length;
 			if (lng <= 0) {
-				element("bill_desc").innerHTML = "No bill found with the search '" + bill_id + "'. To search a house bill use HB, or SB for senate bill.";
+				element("bill_desc").innerHTML = "No bill found with the search '" + bill_id + "'.";
+				if (bill_id.length > 1) {
+					var firstChar = bill_id.charAt(0).toUpperCase();
+					if (firstChar === 'H') {
+						element("bill_desc").innerHTML += " If you're tring to search for a house bill use HB.";
+					} else if (firstChar === 'S') {
+						element("bill_desc").innerHTML += " If you're tring to search for a senate bill use SB.";
+					}
+				}
 				// Clear the timeout timer
 				window.clearTimeout(window.submitTimer);
 				return;
