@@ -103,7 +103,8 @@ function initWithLatLong() {
 						if (!checkCookie("ir_state")) {
 							alert("Failed to find the state from your latitude and longitude");
 						}
-					}
+					},
+					error: 
 				});
 				
 				// Use latitude and longitude to find legislators
@@ -176,7 +177,7 @@ function getLatLongLegislators(lat, long) {
 			updateCookies();
 			clearInfo();
 		},
-		error: function() { window.alert("Error"); }
+		error: function() { window.alert("Error connecting to Open States API."); }
 	});
 }
 
@@ -251,10 +252,10 @@ function getStateDistrictsLegislators(state, house_district, senate_district) {
 					updateCookies();
 					clearInfo();
 				},
-				error: function() { window.alert("Error"); }
+				error: function() { window.alert("Error connecting to Open States API."); }
 			});
 		},
-		error: function() { window.alert("Error"); }
+		error: function() { window.alert("Error connecting to Open States API."); }
 	});
 }
 
