@@ -104,7 +104,7 @@ function initWithLatLong() {
 							alert("Failed to find the state from your latitude and longitude");
 						}
 					},
-					error: 
+					error: function() { window.alert("Error connecting to Google Geocode API."); }
 				});
 				
 				// Use latitude and longitude to find legislators
@@ -439,7 +439,7 @@ function search() {
 				return displayBills(0);
 			}
 		},
-		error: function() { window.alert("Error"); }
+		error: function() { window.alert("Error connecting to Open States API."); }
 	});
 	
 	function submitTimeout() {
