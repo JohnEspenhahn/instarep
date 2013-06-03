@@ -1,11 +1,31 @@
-.content * {
-	display: table;
-	margin: 0 auto;
-}
-.content i { 
-	display: inline; 
+body {
+   margin: 0;
+   padding: 0;
+   height: 100%;
 }
 
 .desc {
 	min-height: 100px;
+}
+
+.license {
+	width: 100%;
+	opacity: 0.5;
+	font-size: x-small;
+	text-align: center;
+	height: 60px;
+	
+	position: absolute;
+	padding-top: 20px;	
+	bottom: 0;
+}
+
+/* Smartphones (portrait and landscape) ----------- */
+/* iPads (portrait and landscape) ----------- */
+@media only screen and (min-device-width : 320px) and (max-device-width : 1080px) {
+	.license {
+		position: relative;
+		padding-top: 50px;
+		bottom: auto;
+	}
 }
