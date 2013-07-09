@@ -15,7 +15,7 @@ function initialize() {
 
 	if (checkCookie("ir_state") && checkCookie("ir_district_House") && checkCookie("ir_district_Senate")) {
 		element("locationMss").innerHTML = "Your residential region (but not your exact address) has been stored locally.<br /><br />";
-		initWithLatLong();
+		getLegislatorFromStateAndDistricts(getCookie("ir_state"), getCookie("ir_district_House"), getCookie("ir_district_Senate"));
 		gotoSearchTab();
 	} else {
 		element("name").innerHTML = 'Please enter your location in the "Change Location" tab.';
@@ -31,7 +31,7 @@ function currentLocation() {
 function codeAddress() {
   var locStateElm = element("locState");
   if (locStateElm.value !== "NC") {
-	window.alert("I'm sorry, the address lookup currenly only works in NC.");
+	window.alert("I'm sorry, the address lookup currently only works in NC.");
 	return;
   }
   element("state").value = locStateElm.value;
@@ -192,6 +192,9 @@ function getLegislatorFromStateAndDistricts(state, house_district, senate_distri
 	window.docReps = [];
 	element("name").innerHTML = "<table id='legInfo' border='1' cellpadding='5'><tr style='font-style: italic; background-color: " + color_yellow + ";'><td>Chamber</td><td>Party</td><td>Full Name</td><td>Email</td><td>Vote</td></tr></table>";
 	
+	setCookie("ir_state", state, 365);
+	element("state").value = state;
+
 	// House chamber (house)
 	ajaxOpenStatesGetHouse(state, house_district);
 	
@@ -325,7 +328,7 @@ function updateCookies() {
 		setCookie("ir_district_Senate", district_Senate, 365);
 		locChange = true;
 	}
-	if (locChange) getStateDistrictsLegislators(state, district_House, district_Senate);
+	if (locChange) getLegislatorFromStateAndDistricts(state, district_House, district_Senate);
 }
 
 // Called to display the bill
