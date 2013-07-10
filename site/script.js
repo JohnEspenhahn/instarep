@@ -67,7 +67,7 @@ function isNumeric(n) {
 }
 
 function convertChamber(val) {
-	if (val.chamber === "lower")
+	if (val.chamber == "lower")
 		val.chamber = "House";
 	else if (val.chamber == "upper")
 		val.chamber = "Senate";
@@ -215,7 +215,10 @@ function ajaxOpenStatesGetHouse(state, house_district) {
 			for(var lowIt=0; lowIt<lng; lowIt++) {
 				val = json[lowIt];
 				
-				if (!val.active) continue;
+				if (!val.active)
+					continue;
+				else
+					convertChamber(val);
 				
 				// For search
 				var id = "rep" + val.leg_id;
@@ -249,7 +252,10 @@ function ajaxOpenStatesGetSenate(state, senate_district) {
 			for(var upIt=0; upIt<lng; upIt++) {
 				val = json[upIt];
 				
-				if (!val.active) continue;
+				if (!val.active)
+					continue;
+				else
+					convertChamber(val);
 				
 				// For search
 				var id = "rep" + val.leg_id;
