@@ -14,9 +14,9 @@ function initialize() {
 	geocoder = new google.maps.Geocoder();
 
 	if (checkCookie("ir_state") && checkCookie("ir_district_House") && checkCookie("ir_district_Senate")) {
+		gotoSearchTab();
 		element("locationMss").innerHTML = "Your residential region (but not your exact address) has been stored locally.<br /><br />";
 		getLegislatorFromStateAndDistricts(getCookie("ir_state"), getCookie("ir_district_House"), getCookie("ir_district_Senate"));
-		gotoSearchTab();
 	} else {
 		element("name").innerHTML = 'Please enter your location in the "Change Location" tab.';
 	}
@@ -24,6 +24,7 @@ function initialize() {
 
 function currentLocation() {
 	element("locationMss").innerHTML = "Your residential region (but not your exact address) has been stored locally.<br /><br />";
+	clearCookies();
 	initWithLatLong();
 	gotoSearchTab();
 }
@@ -43,6 +44,7 @@ function codeAddress() {
   
   geocoder.geocode( { 'address': address, 'bounds': bounds}, function(results, status) {
 	if (status == google.maps.GeocoderStatus.OK) {
+	  clearCookies();
 	  getLegislatorsFromLatLong(results[0].geometry.location.jb, results[0].geometry.location.kb);
 	  gotoSearchTab();
 	} else {
@@ -315,6 +317,12 @@ function clearInfo() {
 	element("other_bills").innerHTML = "";
 }
 
+function clearCookies() {
+	deleteCookie("ir_state");
+	deleteCookie("ir_district_House");
+	deleteCookie("ir_district_Senate");
+}
+
 // Update the cookies with the latest info
 function updateCookies() {
 	var locChange = false,
@@ -519,4 +527,8 @@ function setCookie(c_name,value,exdays) {
 function checkCookie(c_name) {
 	var c_value = getCookie(c_name);
 	return (c_value != null && c_value != "");
+}
+
+function deleteCookie(c_name) {
+	document.cookie=c_name + "=; expires=" + new Date(0).toUTCString();
 }
