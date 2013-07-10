@@ -14,11 +14,11 @@ function initialize() {
 	geocoder = new google.maps.Geocoder();
 
 	if (checkCookie("ir_state") && checkCookie("ir_district_House") && checkCookie("ir_district_Senate")) {
-		gotoSearchTab();
 		element("locationMss").innerHTML = "Your residential region (but not your exact address) has been stored locally.<br /><br />";
 		getLegislatorFromStateAndDistricts(getCookie("ir_state"), getCookie("ir_district_House"), getCookie("ir_district_Senate"));
 	} else {
 		element("name").innerHTML = 'Please enter your location in the "Change Location" tab.';
+		gotoAddressTab();
 	}
 }
 
@@ -56,6 +56,10 @@ function codeAddress() {
 ///////////////////////
 // Instarep Lookup
 ///////////////////////
+function gotoAddressTab() {
+	$('#tabs a[href="#addressLoc"]').tab("show");
+}
+
 function gotoSearchTab() {
 	$('#tabs a[href="#search"]').tab("show");
 }
