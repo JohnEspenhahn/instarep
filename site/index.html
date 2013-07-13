@@ -26,87 +26,101 @@
 	</script>
 </head>
 <body>
-	<ul class="nav nav-tabs" id="tabs">
-	  <li><a href="#addressLoc" data-toggle="tab">Change Location</a></li>
-	  <li><a href="#search" data-toggle="tab">Perform Search</a></li>
-	</ul>
-
-	<div class="tab-content">
-		<div class="tab-pane" id="addressLoc">
-			<form class="form-horizontal">
-			<div id="locationMss" class="container"></div>
-			<div id="panel">
-			  <div class="control-group">
-				<label class="control-label" for="inputStreet">State</label>
-					<div class="controls">
-						<div class="input-prepend">
-							<input type="text" id="locState" class="input-medium search-query" placeholder="State" value="NC" readonly>
+	<div class="container">
+		<div class="row-fluid">
+			<div class="span6">
+				<ul class="nav nav-tabs" id="tabs">
+				  <li><a href="#addressLoc" data-toggle="tab">Change Location</a></li>
+				  <li><a href="#search" data-toggle="tab">Perform Search</a></li>
+				</ul>
+				<div class="tab-content">
+					<div class="tab-pane" id="addressLoc">
+						<form class="form-horizontal">
+						<div id="locationMss"></div>
+						<div id="panel">
+						  <div class="control-group">
+							<label class="control-label" for="inputStreet">State</label>
+								<div class="controls">
+									<div class="input-prepend">
+										<input type="text" id="locState" class="input-medium search-query" placeholder="State" value="NC" readonly>
+									</div>
+								</div>
+						  </div>
+						  <div class="control-group">
+							<label class="control-label" for="inputStreet">Street Address</label>
+								<div class="controls">
+									<div class="input-prepend">
+										<input type="text" id="locStreet" class="input-medium search-query"  placeholder="Street Address">
+									</div>
+								</div>
+						  </div>
+						  <div class="control-group">
+							<label class="control-label" for="inputCity">City</label>
+								<div class="controls">
+									<input type="text" id="locCity" class="input-medium search-query"  placeholder="City">
+								</div>
+						  </div>
+						  
+						  <div class="control-group">
+							  <div class="controls">
+									<input type="button" class="btn btn-primary" onclick="codeAddress()" value="Update Location" />
+								</div>
+						  </div>
+						  
+						  <div class="control-group">
+							 <div class="controls">
+								<input type="button" class="btn btn-primary" onclick="currentLocation()" value="Use My Current Location" />
+							 </div>
+						  </div>
+						</div>
+						</form>
+					</div>
+					
+					<div class="tab-pane" id="search">
+						<form class="form-horizontal" action="javascript:search()">
+						<div id="panel">
+						  
+						  <input type="hidden" id="state">
+						  <input type="hidden" id="district_House">
+						  <input type="hidden" id="district_Senate">
+						  
+						  <div class="control-group">
+							<label class="control-label" for="inputSearch">Bill Search</label>
+								<div class="controls">
+									<input type="text" id="bill_id" class="input-medium search-query"  placeholder="Bill Id or Keyword">
+								<input type="button" class="btn btn-primary" onclick="search()" value="Search" />
+								</div>
+						  </div>
+						  
+						  <!--Temp Info-->
+						  <span id="reps" name="reps"></span>
+						</div>
+						</form>
+						
+						<div id="map-canvas">
+							<span id="bill_desc" class="desc"></span>
+							<h3>Your Local Representatives:</h3>
+							<span id="name"></span>
+							<span id="sources"></span>
+							<span id="other_bills"></span>
 						</div>
 					</div>
-			  </div>
-			  <div class="control-group">
-				<label class="control-label" for="inputStreet">Street Address</label>
-					<div class="controls">
-						<div class="input-prepend">
-							<input type="text" id="locStreet" class="input-medium search-query"  placeholder="Street Address">
-						</div>
-					</div>
-			  </div>
-			  <div class="control-group">
-				<label class="control-label" for="inputCity">City</label>
-					<div class="controls">
-						<input type="text" id="locCity" class="input-medium search-query"  placeholder="City">
-					</div>
-			  </div>
-			  
-			  <div class="control-group">
-				  <div class="controls">
-						<input type="button" class="btn btn-primary" onclick="codeAddress()" value="Update Location" />
-					</div>
-			  </div>
-			  
-			  <div class="control-group">
-				 <div class="controls">
-					<input type="button" class="btn btn-primary" onclick="currentLocation()" value="Use My Current Location" />
-				 </div>
-			  </div>
+				</div>	
 			</div>
-			</form>
-		</div>
-		
-		<div class="tab-pane" id="search">
-			<form class="form-horizontal" action="javascript:search()">
-			<div id="panel">
-			  
-			  <input type="hidden" id="state">
-			  <input type="hidden" id="district_House">
-			  <input type="hidden" id="district_Senate">
-			  
-			  <div class="control-group">
-				<label class="control-label" for="inputSearch">Bill Search</label>
-					<div class="controls">
-						<input type="text" id="bill_id" class="input-medium search-query"  placeholder="Bill Id or Keyword">
-					<input type="button" class="btn btn-primary" onclick="search()" value="Search" />
-					</div>
-			  </div>
-			  
-			  <!--Temp Info-->
-			  <span id="reps" name="reps"></span>
-			</div>
-			</form>
-			
-			<div id="map-canvas" class="container">
-				<span id="bill_desc" class="desc"></span>
-				<h3>Your Local Representatives:</h3>
-				<span id="name"></span>
-				<span id="sources"></span>
-				<span id="other_bills"></span>
+			<div class="span6">
+				<h1>InstaRep</h1>
+				<p>InstaRep helps you quickly see how your government representatives are voting on different issues. </p>
+				<h2>About Us</h2>
+				<p>Coming together at an open data forum, the InstaRep team hopes to provide more localized voting data by our currently elected officials.</p>
+				<h2>Contact Us</h2>
+				<p>Contact us with any questions or interest in getting involved.</p>
 			</div>
 		</div>
-	</div>	
-	
-	<div class="license">
-		<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/deed.en_US"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-nc-sa/3.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/deed.en_US">Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License</a>.
+		<div class="row-fluid">
+			<div class="license span12">
+				<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/deed.en_US"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-nc-sa/3.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/deed.en_US">Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License</a>.
+			</div>
+		</div>
 	</div>
 </body>
 </html>
