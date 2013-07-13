@@ -151,7 +151,7 @@ function getLegislatorsFromLatLong(lat, long) {
 	clearInfo();
 	window.docReps = [];
 
-	element("name").innerHTML = "<table id='legInfo' border='1' cellpadding='5'><tr style='font-style: italic; background-color: " + color_yellow + ";'><td>Chamber</td><td>Party</td><td>Full Name</td><td>Email</td><td>Vote</td></tr></table>";
+	element("name").innerHTML = "<table id='legInfo' border='1' cellpadding='5'><thead><tr style='font-style: italic; background-color: " + color_yellow + ";'><th>Chamber</th><th>Party</th><th>Full Name</th><th>Email</th><th>Vote</th></tr></thead></table>";
 	ajaxOpenStatesGetLegislatorsFromLatLong(lat, long);
 }
 
@@ -202,7 +202,7 @@ function getLegislatorFromStateAndDistricts(state, house_district, senate_distri
 	window.repsLoaded = false;
 	clearInfo();
 	window.docReps = [];
-	element("name").innerHTML = "<table id='legInfo' border='1' cellpadding='5'><tr style='font-style: italic; background-color: " + color_yellow + ";'><td>Chamber</td><td>Party</td><td>Full Name</td><td>Email</td><td>Vote</td></tr></table>";
+	element("name").innerHTML = "<table id='legInfo' border='1' cellpadding='5'><thead><tr style='font-style: italic; background-color: " + color_yellow + ";'><th>Chamber</th><th>Party</th><th>Full Name</th><th>Email</th><th>Vote</th></tr></thead></table>";
 
 	setCookie("ir_state", state, 365);
 	element("state").value = state;
