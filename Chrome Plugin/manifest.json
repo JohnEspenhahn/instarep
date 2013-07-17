@@ -1,0 +1,21 @@
+{
+  "manifest_version": 2,
+
+  "name": "Instarep",
+  "description": "This extension allows you to quickly lookup information about how your local representatives voted on bills.",
+  "version": "1.0",
+
+  "icons": {
+	"16":  "img/icon-16.png",
+	"48":  "img/icon-48.png",
+	"128": "img/icon-128.png"
+  },
+  "background": {
+    "scripts": ["js/jquery.min.js", "js/script.js"]
+  },
+  "permissions": [
+	"tabs",
+	"debugger",
+	"contextMenus"
+  ]
+}

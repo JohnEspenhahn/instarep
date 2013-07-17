@@ -302,10 +302,7 @@ function checkDoneLoading() {
 		element("bill_id").value = decodeURIComponent(results[1]);
 		search();
 	}
-
-	updateCookies();
-	clearInfo();
-
+		
 	return true;
 }
 
@@ -451,23 +448,28 @@ function search() {
 	if (window.repsLoaded !== true) {
 		element("bill_desc").innerHTML = "Still trying to load your local representatives";
 		return;
+	} else if (window.searchingBill) {
+		element("bill_desc").innerHTML = "Loading <i>" + window.searchingBill + "</i> already...";
+		return;
 	}
 
+	window.searchingBill = element("bill_id").value;
 	clearInfo();
-
-	var bill_id = element("bill_id").value,
-		state = element("state").value.toUpperCase();
 
 	// Update state and district cookies if different
 	updateCookies();
 
-	element("bill_desc").innerHTML = "Loading <i>" + bill_id + "</i>...";
+	element("bill_desc").innerHTML = "Loading <i>" + window.searchingBill + "</i>...";
 
 	// Remove old timer and add a new one
-	createNewTimeout(function() { element("bill_desc").innerHTML = "Load bill timed out. Are you sure you entered a valid bill?"; }, 5000);
+	createNewTimeout(function() { 
+			window.searchingBill = "";
+			element("bill_desc").innerHTML = "Load bill timed out. Are you sure you entered a valid bill?";
+		}, 5000);
 
 	// Submit the search string to open states
-	ajaxOpenStatesGetBill(state, bill_id);
+	var state = element("state").value.toUpperCase();
+	ajaxOpenStatesGetBill(state, window.searchingBill);
 }
 
 function ajaxOpenStatesGetBill(state, bill_id) {
@@ -491,16 +493,19 @@ function ajaxOpenStatesGetBill(state, bill_id) {
 				}
 				// Clear the timeout timer
 				window.clearTimeout(window.submitTimer);
-				return;
 			} else {
 				window.clearTimeout(window.submitTimer);
 				window.lastSearchJson = json;
-
-				// First first bill is the most recent
-				return displayBills(0);
+				
+				displayBills(0);
 			}
+			
+			window.searchingBill = "";
 		},
-		error: function() { window.alert("Error connecting to Open States API."); }
+		error: function() { 
+			window.searchingBill = "";
+			window.alert("Error connecting to Open States API."); 
+		}
 	});
 }
 
