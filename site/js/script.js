@@ -453,7 +453,7 @@ function search() {
 		return;
 	}
 
-	window.searchingBill = element("bill_id").value;
+	window.searchingBill = formatBill(element("bill_id").value);
 	clearInfo();
 
 	// Update state and district cookies if different
@@ -515,6 +515,13 @@ function ajaxOpenStatesGetBill(state, bill_id) {
 function createNewTimeout(func, timeout) {
 	if (window.submitTimer != null) window.clearTimeout(window.submitTimer);
 	window.submitTimer = window.setTimeout(func, timeout);
+}
+
+function formatBill(bill) {
+	bill = bill.replace(new RegExp("house bill", 'gi'), "HB");
+	bill = bill.replace(new RegExp("senate bill", 'gi'), "SB");
+	
+	return bill;
 }
 
 ///////////////////////

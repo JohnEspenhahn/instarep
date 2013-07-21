@@ -11,11 +11,9 @@
 	"128": "img/icon-128.png"
   },
   "background": {
-    "scripts": ["js/jquery.min.js", "js/script.js"]
+    "scripts": ["js/script.js"]
   },
   "permissions": [
-	"tabs",
-	"debugger",
 	"contextMenus"
   ]
 }
