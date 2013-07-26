@@ -151,7 +151,7 @@ function getLegislatorsFromLatLong(lat, long) {
 	clearInfo();
 	window.docReps = [];
 
-	element("name").innerHTML = "<table id='legInfo' border='1' cellpadding='5'><thead><tr style='font-style: italic; background-color: " + color_yellow + ";'><th>Chamber</th><th>Party</th><th>Full Name</th><th>Email</th><th>Vote</th></tr></thead></table>";
+	element("name").innerHTML = "<table id='legInfo' border='1' cellpadding='5'><thead><tr style='font-style: italic; background-color: " + color_yellow + ";'><th>Chamber</th><th>Party</th><th>Full Name</th><th>Email</th><th>Vote</th></tr></thead><tbody id='legInfoBody'></tbody></table>";
 	ajaxOpenStatesGetLegislatorsFromLatLong(lat, long);
 }
 
@@ -162,7 +162,7 @@ function ajaxOpenStatesGetLegislatorsFromLatLong(lat, long) {
 		dataType: 'jsonp',
 		success: function(json) {
 			var lng = json.length, val = null,
-				table = element("legInfo");
+				table = element("legInfoBody");
 
 			window.docReps = [];
 			if (lng <= 0) {
@@ -202,7 +202,7 @@ function getLegislatorFromStateAndDistricts(state, house_district, senate_distri
 	window.repsLoaded = false;
 	clearInfo();
 	window.docReps = [];
-	element("name").innerHTML = "<table id='legInfo' border='1' cellpadding='5'><thead><tr style='font-style: italic; background-color: " + color_yellow + ";'><th>Chamber</th><th>Party</th><th>Full Name</th><th>Email</th><th>Vote</th></tr></thead></table>";
+	element("name").innerHTML = "<table id='legInfo' border='1' cellpadding='5'><thead><tr style='font-style: italic; background-color: " + color_yellow + ";'><th>Chamber</th><th>Party</th><th>Full Name</th><th>Email</th><th>Vote</th></tr></thead><tbody id='legInfoBody'></tbody></table>";
 
 	setCookie("ir_state", state, 365);
 	element("state").value = state;
@@ -222,7 +222,7 @@ function ajaxOpenStatesGetHouse(state, house_district) {
 		dataType: 'jsonp',
 		success: function(json) {
 			var lng = json.length, val = null, 
-			    table = element("legInfo");
+			    table = element("legInfoBody");
 
 			for(var lowIt=0; lowIt<lng; lowIt++) {
 				val = json[lowIt];
@@ -259,7 +259,7 @@ function ajaxOpenStatesGetSenate(state, senate_district) {
 		dataType: 'jsonp',
 		success: function(json) {
 			var lng = json.length, val = null, 
-			    table = element("legInfo");
+			    table = element("legInfoBody");
 
 			for(var upIt=0; upIt<lng; upIt++) {
 				val = json[upIt];
