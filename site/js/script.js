@@ -31,10 +31,6 @@ function currentLocation() {
 
 function codeAddress() {
   var locStateElm = element("locState");
-  if (locStateElm.value !== "NC") {
-	window.alert("I'm sorry, the address lookup currently only works in NC.");
-	return;
-  }
   element("state").value = locStateElm.value;
 
   var address = document.getElementById('locStreet').value+" "+document.getElementById('locCity').value+", "+document.getElementById('locState').value;
