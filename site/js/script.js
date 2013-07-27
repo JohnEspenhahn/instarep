@@ -34,8 +34,8 @@ function codeAddress() {
   element("state").value = locStateElm.value;
 
   var address = document.getElementById('locStreet').value+" "+document.getElementById('locCity').value+", "+document.getElementById('locState').value;
-  var swBound = new google.maps.LatLng(33.840969, -84.32186899999999);
-  var neBound = new google.maps.LatLng(36.5881568, -75.45995149999999);
+  var swBound = new google.maps.LatLng(22.350076,-63.294983);
+  var neBound = new google.maps.LatLng(73.124945,169.398193);
   bounds =  new google.maps.LatLngBounds(swBound,neBound);
   
   geocoder.geocode( { 'address': address, 'bounds': bounds}, function(results, status) {
