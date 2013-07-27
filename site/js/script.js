@@ -14,7 +14,7 @@ function initialize() {
 	geocoder = new google.maps.Geocoder();
 
 	if (checkCookie("ir_state") && checkCookie("ir_district_House") && checkCookie("ir_district_Senate")) {
-		element("locationMss").innerHTML = "Your residential region (but not your exact address) has been stored locally.<br /><br />";
+		locationSavedMessage();
 		getLegislatorFromStateAndDistricts(getCookie("ir_state"), getCookie("ir_district_House"), getCookie("ir_district_Senate"));
 	} else {
 		element("name").innerHTML = 'Please enter your location in the "Change Location" tab.';
@@ -23,30 +23,50 @@ function initialize() {
 }
 
 function currentLocation() {
-	element("locationMss").innerHTML = "Your residential region (but not your exact address) has been stored locally.<br /><br />";
 	clearCookies();
 	initWithLatLong();
+	
+	locationSavedMessage();
 	gotoSearchTab();
 }
 
 function codeAddress() {
-  var locStateElm = element("locState");
-  element("state").value = locStateElm.value;
+	var locStateElm = element("locState");
+	element("state").value = locStateElm.value;
 
-  var address = document.getElementById('locStreet').value+" "+document.getElementById('locCity').value+", "+document.getElementById('locState').value;
-  var swBound = new google.maps.LatLng(22.350076,-63.294983);
-  var neBound = new google.maps.LatLng(73.124945,169.398193);
-  bounds =  new google.maps.LatLngBounds(swBound,neBound);
-  
-  geocoder.geocode( { 'address': address, 'bounds': bounds}, function(results, status) {
-	if (status == google.maps.GeocoderStatus.OK) {
-	  clearCookies();
-	  getLegislatorsFromLatLong(results[0].geometry.location.jb, results[0].geometry.location.kb);
-	  gotoSearchTab();
-	} else {
-	  window.alert('Geocode was not successful for the following reason: ' + status);
+	var street = element("locStreet").value,
+	  city = element("locCity").value,
+	  state = element("locState").value;
+	  
+	if (state == "") {
+		element("locationMss").innerHTML = "<span class='error'>Please provide your state or choose 'Use Current Location':</span>";
+		return;
+	} else if (city == "") {
+		element("locationMss").innerHTML = "<span class='error'>Please provide your city or choose 'Use Current Location':</span>";
+		return;
+	} else if (street == "") {
+		element("locationMss").innerHTML = "<span class='error'>Please provide your street or choose 'Use Current Location':</span>";
+		return;
 	}
-  });
+
+	var address = street+" "+city+", "+state,
+	  swBound = new google.maps.LatLng(22.350076,-63.294983),
+	  neBound = new google.maps.LatLng(73.124945,169.398193),
+	  bounds =  new google.maps.LatLngBounds(swBound,neBound);
+
+	geocoder.geocode( { 'address': address, 'bounds': bounds}, function(results, status) {
+		if (status == google.maps.GeocoderStatus.OK) {
+			clearCookies();
+			
+			setCookie("ir_state", state, 365);
+			getLegislatorsFromLatLong(results[0].geometry.location.jb, results[0].geometry.location.kb);
+			
+			locationSavedMessage();
+			gotoSearchTab();
+		} else {
+			window.alert('Geocode was not successful for the following reason: ' + status);
+		}
+	});
 }
 
 function clearCookies() {
@@ -72,6 +92,10 @@ function element(id) {
 
 function isNumeric(n) {
   return !isNaN(parseFloat(n)) && isFinite(n);
+}
+
+function locationSavedMessage() {
+	element("locationMss").innerHTML = "Your residential region (but not your exact address) has been stored locally.";
 }
 
 function convertChamber(val) {
@@ -106,6 +130,7 @@ function initWithLatLong() {
 				element("district_House").value = c_district_House;
 				element("district_Senate").value = c_district_Senate;
 			} else {
+				// Needed to save state cookie
 				ajaxGoogleGetStateFromLatLong(lat, long);
 
 				// Use latitude and longitude to find user's legislators
@@ -147,7 +172,7 @@ function getLegislatorsFromLatLong(lat, long) {
 	clearInfo();
 	window.docReps = [];
 
-	element("name").innerHTML = "<table id='legInfo' border='1' cellpadding='5'><thead><tr style='font-style: italic; background-color: " + color_yellow + ";'><th>Chamber</th><th>Party</th><th>Full Name</th><th>Email</th><th>Vote</th></tr></thead><tbody id='legInfoBody'></tbody></table>";
+	element("name").innerHTML = "<table id='legInfo' border='1' cellpadding='5'><thead><tr style='font-style: italic; background-color: " + color_yellow + ";'><th>Chamber</th><th>Party</th><th>Name</th><th>Email</th><th>Vote</th></tr></thead><tbody id='legInfoBody'></tbody></table>";
 	ajaxOpenStatesGetLegislatorsFromLatLong(lat, long);
 }
 
@@ -157,8 +182,7 @@ function ajaxOpenStatesGetLegislatorsFromLatLong(lat, long) {
 		url: 'http://openstates.org/api/v1/legislators/geo/?lat=' + lat + '&long=' + long + '&active=true&apikey=18cdbb31b096462985cf408a5a41d3af',
 		dataType: 'jsonp',
 		success: function(json) {
-			var lng = json.length, val = null,
-				table = element("legInfoBody");
+			var lng = json.length, val = null;
 
 			window.docReps = [];
 			if (lng <= 0) {
@@ -175,16 +199,11 @@ function ajaxOpenStatesGetLegislatorsFromLatLong(lat, long) {
 					convertChamber(val);
 
 				// For search
-				var id = "rep" + val.leg_id;
-				window.docReps.push(id);
+				window.docReps.push(val.leg_id);
 				element("district_" + val.chamber).value = val.district;
 				setCookie("ir_district_" + val.chamber, val.district, 365);
 
-				// Display
-				var row = table.insertRow(-1);
-				row.id = id + "_voteRow";
-				row.innerHTML = "<td>" + val.chamber + "</td><td>" + val.party + "</td><td>" + val.full_name + "</td>" +
-				    "<td><a href='mailto:" + val.email + "'>" + val.email + "</a></td><td id='" + id + "_vote'>N/A</td></tr>";
+				displayLegislator(val);
 			}
 
 			checkDoneLoading();
@@ -198,7 +217,7 @@ function getLegislatorFromStateAndDistricts(state, house_district, senate_distri
 	window.repsLoaded = false;
 	clearInfo();
 	window.docReps = [];
-	element("name").innerHTML = "<table id='legInfo' border='1' cellpadding='5'><thead><tr style='font-style: italic; background-color: " + color_yellow + ";'><th>Chamber</th><th>Party</th><th>Full Name</th><th>Email</th><th>Vote</th></tr></thead><tbody id='legInfoBody'></tbody></table>";
+	element("name").innerHTML = "<table id='legInfo' border='1' cellpadding='5'><thead><tr style='font-style: italic; background-color: " + color_yellow + ";'><th>Chamber</th><th>Party</th><th>Name</th><th>Email</th><th>Vote</th></tr></thead><tbody id='legInfoBody'></tbody></table>";
 
 	setCookie("ir_state", state, 365);
 	element("state").value = state;
@@ -217,8 +236,7 @@ function ajaxOpenStatesGetHouse(state, house_district) {
 				'&active=true&chamber=lower&apikey=18cdbb31b096462985cf408a5a41d3af',
 		dataType: 'jsonp',
 		success: function(json) {
-			var lng = json.length, val = null, 
-			    table = element("legInfoBody");
+			var lng = json.length, val = null;
 
 			for(var lowIt=0; lowIt<lng; lowIt++) {
 				val = json[lowIt];
@@ -229,16 +247,11 @@ function ajaxOpenStatesGetHouse(state, house_district) {
 					convertChamber(val);
 
 				// For search
-				var id = "rep" + val.leg_id;
-				window.docReps.push(id);
+				window.docReps.push(val.leg_id);
 				element("district_House").value = val.district;
 				setCookie("ir_district_House", val.district, 365);
 
-				// Display
-				var row = table.insertRow(-1);
-				row.id = id + "_voteRow";
-				row.innerHTML = "<td>" + val.chamber + "</td><td>" + val.party + "</td><td>" + val.full_name + "</td>" +
-				    "<td><a href='mailto:" + val.email + "'>" + val.email + "</a></td><td id='" + id + "_vote'>N/A</td></tr>";
+				displayLegislator(val);
 			}
 
 			checkDoneLoading();
@@ -254,8 +267,7 @@ function ajaxOpenStatesGetSenate(state, senate_district) {
 				'&active=true&chamber=upper&apikey=18cdbb31b096462985cf408a5a41d3af',
 		dataType: 'jsonp',
 		success: function(json) {
-			var lng = json.length, val = null, 
-			    table = element("legInfoBody");
+			var lng = json.length, val = null;
 
 			for(var upIt=0; upIt<lng; upIt++) {
 				val = json[upIt];
@@ -266,16 +278,11 @@ function ajaxOpenStatesGetSenate(state, senate_district) {
 					convertChamber(val);
 
 				// For search
-				var id = "rep" + val.leg_id;
-				window.docReps.push(id);
+				window.docReps.push(val.leg_id);
 				element("district_Senate").value = val.district;
 				setCookie("ir_district_Senate", val.district, 365);
 
-				// Display
-				var row = table.insertRow(-1);
-				row.id = id + "_voteRow";
-				row.innerHTML = "<td>" + val.chamber + "</td><td>" + val.party + "</td><td>" + val.full_name + "</td>" +
-				    "<td><a href='mailto:" + val.email + "'>" + val.email + "</a></td><td id='" + id + "_vote'>N/A</td></tr>";
+				displayLegislator(val);
 			}
 
 			checkDoneLoading();
@@ -300,6 +307,19 @@ function checkDoneLoading() {
 	}
 		
 	return true;
+}
+
+function displayLegislator(val) {
+	// Formatting
+	if (val.email == undefined) {
+		val.email = "";
+	}
+	
+	// Display
+	var row = element("legInfoBody").insertRow(-1);
+	row.id = val.leg_id + "_voteRow";
+	row.innerHTML = "<td>" + val.chamber + "</td><td>" + val.party + "</td><td>" + val.full_name + "</td>" +
+		"<td><a href='mailto:" + val.email + "'>" + val.email + "</a></td><td id='" + val.leg_id + "_vote'>N/A</td></tr>";
 }
 
 // Clear the info from the previous bill
@@ -388,7 +408,7 @@ function displayVotes(tableJson) {
 	// Read representatives
 	var docReps = window.docReps, lng = docReps.length, reps = new Array(lng);
 	for (var i=0; i<lng; i++) {
-		reps[i] = { voteCellId: docReps[i] + "_vote", voteRowId: docReps[i] + "_voteRow", leg_id: docReps[i].substring(3) }; // leg_id remove "rep"
+		reps[i] = { voteCellId: docReps[i] + "_vote", voteRowId: docReps[i] + "_voteRow", leg_id: docReps[i] };
 	}
 
 	// Find representative's vote

@@ -48,44 +48,50 @@
 				</ul>
 				<div class="tab-content">
 					<div class="tab-pane" id="addressLoc">
+						<form class="form-horizontal" action="index.html" onsubmit="codeAddress()">
+							<div id="panel">
+							  <div class="control-group message" id="locationMss">Manually enter your address or choose 'Use Current Location':</div>
+							  <div class="control-group">
+								<label class="control-label" for="inputStreet">Street Address</label>
+									<div class="controls">
+										<div class="input-prepend">
+											<input type="text" id="locStreet" class="input-medium search-query"  placeholder="Street Address">
+										</div>
+									</div>
+							  </div>
+							  <div class="control-group">
+								<label class="control-label" for="inputCity">City</label>
+									<div class="controls">
+										<div class="input-prepend">
+											<input type="text" id="locCity" class="input-medium search-query"  placeholder="City">
+										</div>
+									</div>
+							  </div>
+							  <div class="control-group">
+								<label class="control-label" for="inputStreet">State</label>
+									<div class="controls">
+										<div class="input-prepend">
+											<input type="text" id="locState" class="input-medium search-query" placeholder="State">
+										</div>
+									</div>
+							  </div>
+							  
+							  <div class="control-group">
+								  <div class="controls">
+										<input type="button" class="btn btn-primary" onclick="codeAddress()" value="Update Location" />
+									</div>
+							  </div>
+							</div>
+						</form>
+
 						<form class="form-horizontal">
-						<div id="locationMss"></div>
-						<div id="panel">
-						  <div class="control-group">
-							<label class="control-label" for="inputStreet">State</label>
-								<div class="controls">
-									<div class="input-prepend">
-										<input type="text" id="locState" class="input-medium search-query" placeholder="State">
+							<div id="panel">
+								<div class="control-group">
+									<div class="controls">
+										<input type="button" class="btn btn-primary" onclick="currentLocation()" value="Use Current Location" />
 									</div>
 								</div>
-						  </div>
-						  <div class="control-group">
-							<label class="control-label" for="inputStreet">Street Address</label>
-								<div class="controls">
-									<div class="input-prepend">
-										<input type="text" id="locStreet" class="input-medium search-query"  placeholder="Street Address">
-									</div>
-								</div>
-						  </div>
-						  <div class="control-group">
-							<label class="control-label" for="inputCity">City</label>
-								<div class="controls">
-									<input type="text" id="locCity" class="input-medium search-query"  placeholder="City">
-								</div>
-						  </div>
-						  
-						  <div class="control-group">
-							  <div class="controls">
-									<input type="button" class="btn btn-primary" onclick="codeAddress()" value="Update Location" />
-								</div>
-						  </div>
-						  
-						  <div class="control-group">
-							 <div class="controls">
-								<input type="button" class="btn btn-primary" onclick="currentLocation()" value="Use My Current Location" />
-							 </div>
-						  </div>
-						</div>
+							</div>
 						</form>
 					</div>
 					
