@@ -322,8 +322,16 @@ function displayLegislator(val) {
 		"<td><a href='mailto:" + val.email + "'>" + val.email + "</a></td><td id='" + val.leg_id + "_vote'>N/A</td></tr>";
 }
 
-// Clear the info from the previous bill
 function clearInfo() {
+	element("other_bills").innerHTML = "";
+	clearOldBill();
+}
+
+// Clear the info from the previous bill
+function clearOldBill() {
+	element("sources").innerHTML = "";
+	element("bill_desc").innerHTML = "";
+
 	var lng = docReps.length, reps = new Array(lng);
 	for (var i=0; i<lng; i++) {
 		var cellElmnt = element(window.docReps[i] + "_vote");
@@ -335,9 +343,6 @@ function clearInfo() {
 		if (rowElmnt !== null)
 			rowElmnt.bgColor = "white";
 	}
-
-	element("bill_desc").innerHTML = "";
-	element("other_bills").innerHTML = "";
 }
 
 // Update the cookies with the latest info
@@ -365,21 +370,26 @@ function updateCookies() {
 // Called to display the bill
 //   jsonBillId: The bill index of the json to display in detail
 function displayBills(jsonBillId) {
-	// Clear the info from the previous bill
-	clearInfo();
-
 	if (window.lastSearchJson.length > 1) {
 		element("other_bills").innerHTML = "<p><h6>Other matching bills:</h6><ul>";
 		
 		var len = window.lastSearchJson.length - 1;
 		for (var i=0; i<len; i++) {
-			if (i == jsonBillId) {
-				element("other_bills").innerHTML += "<li><a href='javascript:displayBills(" + i + ");'><b>" + window.lastSearchJson[i].title + "</b></a></li>";
-			} else {
-				element("other_bills").innerHTML += "<li><a href='javascript:displayBills(" + i + ");'>" + window.lastSearchJson[i].title + "</a></li>";
-			}
+			element("other_bills").innerHTML += "<li><a id='linkbill_" + i + "' href='javascript:switchToBill(" + i + ");'>" + window.lastSearchJson[i].title + "</a></li>";
 		}
 	}
+	
+	window.oldBill = jsonBillId;
+	switchToBill(jsonBillId);
+}
+
+function switchToBill(jsonBillId) {
+	element("linkbill_" + window.oldBill).style.fontWeight = "normal";
+	window.oldBill = jsonBillId;
+	element("linkbill_" + window.oldBill).style.fontWeight = "bold";
+
+	clearOldBill();
+	$(document).scrollTop($("#info_anchor").offset().top);
 
 	tableJson = window.lastSearchJson[jsonBillId];
 	// No vote yet
@@ -390,8 +400,7 @@ function displayBills(jsonBillId) {
 		// Convert from house/senate to house/senate
 		convertChamber(tableJson);
 
-		var mss = "Latest vote on <i>" + tableJson.title + " (" + tableJson.bill_id + ")</i> of the " + tableJson.chamber + ". <br />"
-		element("bill_desc").innerHTML = mss
+		element("bill_desc").innerHTML = "Latest vote on <i>" + tableJson.title + " (" + tableJson.bill_id + ")</i> of the " + tableJson.chamber + ". <br />";
 		displaySources(tableJson.sources);
 		displayVotes(tableJson);
 	}
@@ -481,7 +490,7 @@ function search() {
 	createNewTimeout(function() { 
 			window.searchingBill = "";
 			element("bill_desc").innerHTML = "Load bill timed out. Are you sure you entered a valid bill?";
-		}, 5000);
+		}, 10000);
 
 	// Submit the search string to open states
 	var state = element("state").value.toUpperCase();
