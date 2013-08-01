@@ -51,7 +51,7 @@ div .message {
 		left: -9999px;
 	}
 	tr { border: none; }
-	tr:nth-of-type(1) { border-bottom: 1px solid; }
+	tr:nth-of-type(1) { border-bottom: 1px solid #808080; }
 	td {
 		border: none;
 		border-bottom: 1px solid #eee; 
