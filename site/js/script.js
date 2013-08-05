@@ -26,7 +26,6 @@ function currentLocation() {
 	clearCookies();
 	initWithLatLong();
 	
-	locationSavedMessage();
 	gotoSearchTab();
 }
 
@@ -61,7 +60,6 @@ function codeAddress() {
 			setCookie("ir_state", state, 365);
 			getLegislatorsFromLatLong(results[0].geometry.location.jb, results[0].geometry.location.kb);
 			
-			locationSavedMessage();
 			gotoSearchTab();
 		} else {
 			window.alert('Geocode was not successful for the following reason: ' + status);
@@ -298,6 +296,7 @@ function checkDoneLoading() {
 
 	// Display and tell of update reps
 	window.repsLoaded = true;
+	locationSavedMessage();
 
 	// Check for URL param
 	var results = new RegExp("[\\?&]bill=([^&#]*)").exec(window.location.search);
