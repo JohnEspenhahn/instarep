@@ -383,9 +383,15 @@ function displayBills(jsonBillId) {
 }
 
 function switchToBill(jsonBillId) {
-	element("linkbill_" + window.oldBill).style.fontWeight = "normal";
+	var oldBill = element("linkbill_" + window.oldBill);
+	if (oldBill != undefined)
+		oldBill.style.fontWeight = "normal";
+
 	window.oldBill = jsonBillId;
-	element("linkbill_" + window.oldBill).style.fontWeight = "bold";
+	
+	var newBill = element("linkbill_" + window.oldBill);
+	if (newBill != undefined)
+		newBill.style.fontWeight = "bold";
 
 	clearOldBill();
 	$(document).scrollTop($("#info_anchor").offset().top);
