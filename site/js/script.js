@@ -197,7 +197,7 @@ function ajaxOpenStatesGetLegislatorsFromLatLong(lat, long) {
 					convertChamber(val);
 
 				// For search
-				window.docReps.push(val.leg_id);
+				window.docReps.push({ voteCellId: val.leg_id + "_vote", voteRowId: val.leg_id + "_voteRow", leg_id: val.leg_id });
 				element("district_" + val.chamber).value = val.district;
 				setCookie("ir_district_" + val.chamber, val.district, 365);
 
@@ -245,7 +245,7 @@ function ajaxOpenStatesGetHouse(state, house_district) {
 					convertChamber(val);
 
 				// For search
-				window.docReps.push(val.leg_id);
+				window.docReps.push({ voteCellId: val.leg_id + "_vote", voteRowId: val.leg_id + "_voteRow", leg_id: val.leg_id });
 				element("district_House").value = val.district;
 				setCookie("ir_district_House", val.district, 365);
 
@@ -276,7 +276,7 @@ function ajaxOpenStatesGetSenate(state, senate_district) {
 					convertChamber(val);
 
 				// For search
-				window.docReps.push(val.leg_id);
+				window.docReps.push({ voteCellId: val.leg_id + "_vote", voteRowId: val.leg_id + "_voteRow", leg_id: val.leg_id });
 				element("district_Senate").value = val.district;
 				setCookie("ir_district_Senate", val.district, 365);
 
@@ -310,7 +310,7 @@ function checkDoneLoading() {
 
 function displayLegislator(val) {
 	// Formatting
-	if (val.email == undefined) {
+	if (val.email == null) {
 		val.email = "";
 	}
 	
@@ -331,15 +331,14 @@ function clearOldBill() {
 	element("sources").innerHTML = "";
 	element("bill_desc").innerHTML = "";
 
-	var lng = docReps.length, reps = new Array(lng);
-	for (var i=0; i<lng; i++) {
-		var cellElmnt = element(window.docReps[i] + "_vote");
-		if (cellElmnt !== null)
+	for (var i=0; i<docReps.length; i++) {
+		var cellElmnt = element(window.docReps[i].voteCellId);
+		if (cellElmnt != null)
 			cellElmnt.innerHTML = "N/A";
 
 		// Set default row background color
-		var rowElmnt = element(window.docReps[i] + "_voteRow");
-		if (rowElmnt !== null)
+		var rowElmnt = element(window.docReps[i].voteRowId);
+		if (rowElmnt != null)
 			rowElmnt.bgColor = "white";
 	}
 }
@@ -384,13 +383,13 @@ function displayBills(jsonBillId) {
 
 function switchToBill(jsonBillId) {
 	var oldBill = element("linkbill_" + window.oldBill);
-	if (oldBill != undefined)
+	if (oldBill != null)
 		oldBill.style.fontWeight = "normal";
 
 	window.oldBill = jsonBillId;
 	
 	var newBill = element("linkbill_" + window.oldBill);
-	if (newBill != undefined)
+	if (newBill != null)
 		newBill.style.fontWeight = "bold";
 
 	clearOldBill();
@@ -413,51 +412,56 @@ function switchToBill(jsonBillId) {
 
 // Display the vote for each representative
 function displayVotes(tableJson) {
-	// Read votes
-	var votes = tableJson.votes[tableJson.votes.length-1],
-		yes_votes = votes.yes_votes, yes_count = yes_votes.length,
-		no_votes = votes.no_votes, no_count = no_votes.length,
-		other_votes = votes.other_votes, other_count = other_votes.length;
-
-	// Read representatives
-	var docReps = window.docReps, lng = docReps.length, reps = new Array(lng);
-	for (var i=0; i<lng; i++) {
-		reps[i] = { voteCellId: docReps[i] + "_vote", voteRowId: docReps[i] + "_voteRow", leg_id: docReps[i] };
-	}
-
-	// Find representative's vote
-	var i, j, r, found;
-	for (i=0; i<lng; i++) {
-		found = false;
-		r = reps[i];
-		for (j=0; j<yes_count; j++) {
-			if (yes_votes[j].leg_id == r.leg_id) {
-				element(r.voteCellId).innerHTML = "Yes";
-				element(r.voteRowId).bgColor = color_green;
-				found = true;
-				break;
+	var actionDates = [];
+	tableJson.actions.forEach(function(action) {
+		action.type.forEach(function(actType) {
+			if (actType === "bill:passed" || actType === "bill:failed") {
+				var actionDate = action.date.split(' ')[0];
+				actionDates.push(actionDate);
 			}
+		});
+	});
+
+	tableJson.votes.forEach(function(vote) {
+		// Check that this is a bill we care about
+		var voteDate = vote.date.split(' ')[0];
+		if ($.inArray(voteDate, actionDates) === -1)
+			return;
+	
+		// Find representative's vote
+		for (var i=0; i<window.docReps.length; i++) {
+			if (checkVoteForRep(window.docReps[i], vote.yes_votes, vote.no_votes, vote.other_votes))
+				break;
 		}
-		if (found) continue; // No need to do other loops
+	});
+}
 
-		for (j=0; j<no_count; j++) {
-			if (no_votes[j].leg_id == r.leg_id) {
-				element(r.voteCellId).innerHTML = "No";
-				element(r.voteRowId).bgColor = color_red;
-				found = true;
-				break;
-			}
-		}
-		if (found) continue; // No need to do last loop
-
-		for (j=0; j<other_count; j++) {
-			if (other_votes[j].leg_id == r.leg_id) {
-				element(r.voteCellId).innerHTML = "Absent";
-				element(r.voteRowId).bgColor = "white";
-				break;
-			}
+function checkVoteForRep(repObj, yes_votes, no_votes, other_votes) {
+	for (var j=0; j<yes_votes.length; j++) {
+		if (yes_votes[j].leg_id === repObj.leg_id) {
+			element(repObj.voteCellId).innerHTML = "Yes";
+			element(repObj.voteRowId).bgColor = color_green;
+			return true;
 		}
 	}
+
+	for (var j=0; j<no_votes.length; j++) {
+		if (no_votes[j].leg_id === repObj.leg_id) {
+			element(repObj.voteCellId).innerHTML = "No";
+			element(repObj.voteRowId).bgColor = color_red;
+			return true;
+		}
+	}
+
+	for (var j=0; j<other_votes.length; j++) {
+		if (other_votes[j].leg_id === repObj.leg_id) {
+			element(repObj.voteCellId).innerHTML = "Absent";
+			element(repObj.voteRowId).bgColor = "white";
+			return true;
+		}
+	}
+	
+	return false
 }
 
 // Print the sources of the result
@@ -504,8 +508,8 @@ function search() {
 
 function ajaxOpenStatesGetBill(state, bill_id) {
 	$.ajax({
-		url: "http://openstates.org/api/v1/bills/?state=" + state + "&search_window=session&q=" + bill_id + 
-					"&fields=votes,votes.yes_votes,votes.no_votes,votes.other_votes,title,bill_id,chamber,sources&apikey=18cdbb31b096462985cf408a5a41d3af",
+		url: "http://openstates.org/api/v1/bills/?state=" + state + "&q=" + bill_id + "&search_window=session&page=1" +
+					"&fields=actions.type,actions.date,votes.date,votes.yes_votes,votes.no_votes,votes.other_votes,title,bill_id,chamber,sources&apikey=18cdbb31b096462985cf408a5a41d3af",
 		dataType: 'jsonp',
 		success: function(json) {
 			var lng = json.length;
