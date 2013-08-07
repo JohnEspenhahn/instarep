@@ -38,7 +38,7 @@
 
 	</script>
 </head>
-<body>
+<body onload="init()">
 	<div class="container">
 		<div class="row-fluid">
 			<div class="span6">
@@ -104,7 +104,7 @@
 						  <input type="hidden" id="district_Senate">
 						  
 						  <div class="control-group">
-							<label class="control-label" for="inputSearch">Bill Search</label>
+							<label class="control-label" for="inputSearch">Bill Search:</label>
 								<div class="controls">
 									<input type="text" id="bill_id" class="input-medium search-query"  placeholder="Bill Id or Keyword">
 								<input type="button" class="btn btn-primary" onclick="search()" value="Search" />

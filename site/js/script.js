@@ -6,12 +6,9 @@ var color_red = "#F2DEDE", color_green = "#DFF0D8", color_yellow = "#FCF8E3";
 ///////////////////////
 // Address to LatLong
 ///////////////////////
-google.maps.event.addDomListener(window, 'load', initialize);
 
-var geocoder;
-function initialize() {
+function init() {
     window.docReps = [];
-	geocoder = new google.maps.Geocoder();
 
 	if (checkCookie("ir_state") && checkCookie("ir_district_House") && checkCookie("ir_district_Senate")) {
 		locationSavedMessage();
@@ -37,34 +34,34 @@ function codeAddress() {
 	  city = element("locCity").value,
 	  state = element("locState").value;
 	  
-	if (state == "") {
+	if (google == undefined) {
+		element("locationMss").innerHTML = "<span class='error'>Failed to connect to google, try refreshing the page.</span>";
+	} else if (state == "") {
 		element("locationMss").innerHTML = "<span class='error'>Please provide your state or choose 'Use Current Location':</span>";
-		return;
 	} else if (city == "") {
 		element("locationMss").innerHTML = "<span class='error'>Please provide your city or choose 'Use Current Location':</span>";
-		return;
 	} else if (street == "") {
 		element("locationMss").innerHTML = "<span class='error'>Please provide your street or choose 'Use Current Location':</span>";
-		return;
+	} else {
+		var geocoder = new google.maps.Geocoder(),
+		  address = street+" "+city+", "+state,
+		  swBound = new google.maps.LatLng(22.350076,-63.294983),
+		  neBound = new google.maps.LatLng(73.124945,169.398193),
+		  bounds =  new google.maps.LatLngBounds(swBound,neBound);
+
+		geocoder.geocode( { 'address': address, 'bounds': bounds}, function(results, status) {
+			if (status == google.maps.GeocoderStatus.OK) {
+				clearCookies();
+				
+				setCookie("ir_state", state, 365);
+				getLegislatorsFromLatLong(results[0].geometry.location.jb, results[0].geometry.location.kb);
+				
+				gotoSearchTab();
+			} else {
+				window.alert('Geocode was not successful for the following reason: ' + status);
+			}
+		});
 	}
-
-	var address = street+" "+city+", "+state,
-	  swBound = new google.maps.LatLng(22.350076,-63.294983),
-	  neBound = new google.maps.LatLng(73.124945,169.398193),
-	  bounds =  new google.maps.LatLngBounds(swBound,neBound);
-
-	geocoder.geocode( { 'address': address, 'bounds': bounds}, function(results, status) {
-		if (status == google.maps.GeocoderStatus.OK) {
-			clearCookies();
-			
-			setCookie("ir_state", state, 365);
-			getLegislatorsFromLatLong(results[0].geometry.location.jb, results[0].geometry.location.kb);
-			
-			gotoSearchTab();
-		} else {
-			window.alert('Geocode was not successful for the following reason: ' + status);
-		}
-	});
 }
 
 function clearCookies() {
