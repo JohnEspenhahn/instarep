@@ -90,7 +90,7 @@ function isNumeric(n) {
 }
 
 function locationSavedMessage() {
-	element("locationMss").innerHTML = "Your residential region (but not your exact address) has been stored locally.";
+	element("locationMss").innerHTML = "Your district has been stored locally.";
 }
 
 function convertChamber(val) {
