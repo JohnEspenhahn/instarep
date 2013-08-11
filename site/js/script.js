@@ -315,7 +315,7 @@ function displayLegislator(val) {
 	var row = element("legInfoBody").insertRow(-1);
 	row.id = val.leg_id + "_voteRow";
 	row.innerHTML = "<td>" + val.chamber + "</td><td>" + val.party + "</td><td>" + val.full_name + "</td>" +
-		"<td><a href='mailto:" + val.email + "'>" + val.email + "</a></td><td id='" + val.leg_id + "_vote'>N/A</td></tr>";
+		"<td><pre><a href='mailto:" + val.email + "'>" + val.email + "</a></td><td id='" + val.leg_id + "_vote'>N/A</pre></td></tr>";
 }
 
 function clearInfo() {

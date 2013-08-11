@@ -31,6 +31,37 @@ div .message {
 	bottom: 0;
 }
 
+#example1, #webStoreBadge{
+	display: block;
+	margin: 0 auto;
+}
+
+.tab-content{
+	background: #FFF;
+	padding: 20px 0 50px 0;
+	border:solid 1px #dddddd;
+	border-top-style: none;
+	border-right-style: solid 1px #dddddd;
+	border-bottom-style: solid 1px #dddddd;
+	border-left-style:solid 1px #dddddd;
+	-moz-border-radius-topleft: 0px;
+	-moz-border-radius-topright:0px;
+	-moz-border-radius-bottomleft:5px;
+	-moz-border-radius-bottomright:5px;
+	-webkit-border-top-left-radius:0px;
+	-webkit-border-top-right-radius:0px;
+	-webkit-border-bottom-left-radius:5px;
+	-webkit-border-bottom-right-radius:5px;
+	border-top-left-radius:0px;
+	border-top-right-radius:0px;
+	border-bottom-left-radius:5px;
+	border-bottom-right-radius:5px;
+}
+
+#map-canvas{
+	padding: 0 15px 0 15px;
+}
+
 /* Smartphones (portrait and landscape) ----------- */
 /* iPads (portrait and landscape) ----------- */
 @media only screen and (min-device-width : 320px) and (max-device-width : 1080px) {
