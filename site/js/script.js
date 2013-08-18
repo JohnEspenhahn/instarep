@@ -8,11 +8,12 @@ var color_red = "#F2DEDE", color_green = "#DFF0D8", color_yellow = "#FCF8E3";
 ///////////////////////
 
 function init() {
-    window.docReps = [];
+	window.ir = {};
+    window.ir.docReps = [];
 
-	if (checkCookie("ir_state") && checkCookie("ir_district_House") && checkCookie("ir_district_Senate")) {
+	if (checkCookie("ir_state") && checkCookie("ir_district_house") && checkCookie("ir_district_senate")) {
 		locationSavedMessage();
-		getLegislatorFromStateAndDistricts(getCookie("ir_state"), getCookie("ir_district_House"), getCookie("ir_district_Senate"));
+		getLegislatorFromStateAndDistricts(getCookie("ir_state"), getCookie("ir_district_house"), getCookie("ir_district_senate"));
 	} else {
 		element("name").innerHTML = 'Please enter your location in the "Change Location" tab.';
 		gotoAddressTab();
@@ -27,12 +28,9 @@ function currentLocation() {
 }
 
 function codeAddress() {
-	var locStateElm = element("locState");
-	element("state").value = locStateElm.value;
-
 	var street = element("locStreet").value,
 	  city = element("locCity").value,
-	  state = element("locState").value;
+	  state = element("locState").value.toUpperCase();
 	  
 	if (google == undefined) {
 		element("locationMss").innerHTML = "<span class='error'>Failed to connect to google, try refreshing the page.</span>";
@@ -53,6 +51,7 @@ function codeAddress() {
 			if (status == google.maps.GeocoderStatus.OK) {
 				clearCookies();
 				
+				window.ir.state = state;
 				setCookie("ir_state", state, 365);
 				getLegislatorsFromLatLong(results[0].geometry.location.lat(), results[0].geometry.location.lng());
 				
@@ -66,8 +65,8 @@ function codeAddress() {
 
 function clearCookies() {
 	deleteCookie("ir_state");
-	deleteCookie("ir_district_House");
-	deleteCookie("ir_district_Senate");
+	deleteCookie("ir_district_house");
+	deleteCookie("ir_district_senate");
 }
 
 ///////////////////////
@@ -114,16 +113,16 @@ function initWithLatLong() {
 				long = pos.coords.longitude;
 
 			// Get state
-			if (checkCookie("ir_state") && checkCookie("ir_district_House") && checkCookie("ir_district_Senate")) {
+			if (checkCookie("ir_state") && checkCookie("ir_district_house") && checkCookie("ir_district_senate")) {
 				var c_state = getCookie("ir_state"),
-					c_district_House = getCookie("ir_district_House"),
-					c_district_Senate = getCookie("ir_district_Senate");
+					c_district_house = getCookie("ir_district_house"),
+					c_district_senate = getCookie("ir_district_senate");
 
 				// Have both state and district, use them to lookup
-				getLegislatorFromStateAndDistricts(c_state, c_district_House, c_district_Senate);
-				element("state").value = c_state;
-				element("district_House").value = c_district_House;
-				element("district_Senate").value = c_district_Senate;
+				getLegislatorFromStateAndDistricts(c_state, c_district_house, c_district_senate);
+				window.ir.state = c_state;
+				window.ir.district_house = c_district_house;
+				window.ir.district_senate = c_district_senate;
 			} else {
 				// Needed to save state cookie
 				ajaxGoogleGetStateFromLatLong(lat, long);
@@ -147,8 +146,8 @@ function ajaxGoogleGetStateFromLatLong(lat, long) {
 			for (var i=0; i<lng; i++) {
 				var idx = $.inArray("administrative_area_level_1", addrs[i].types)
 				if (idx != -1) { // If the types does contain
-					setCookie("ir_state", addrs[i].short_name, 365);
-					element("state").value = addrs[i].short_name;
+					setCookie("ir_state", addrs[i].short_name.toUpperCase(), 365);
+					window.ir.state = addrs[i].short_name;
 					break;
 				}
 			}
@@ -163,9 +162,9 @@ function ajaxGoogleGetStateFromLatLong(lat, long) {
 
 // Use latitude and longitude to find legislators
 function getLegislatorsFromLatLong(lat, long) {
-	window.repsLoaded = false;
+	window.ir.repsLoaded = false;
 	clearInfo();
-	window.docReps = [];
+	window.ir.docReps = [];
 
 	ajaxOpenStatesGetLegislatorsFromLatLong(lat, long);
 }
@@ -178,7 +177,7 @@ function ajaxOpenStatesGetLegislatorsFromLatLong(lat, long) {
 		success: function(json) {
 			var lng = json.length, val = null;
 			
-			window.docReps = [];
+			window.ir.docReps = [];
 			if (lng <= 0) {
 				element("name").innerHTML = "No representatives found.";
 				return;
@@ -189,15 +188,21 @@ function ajaxOpenStatesGetLegislatorsFromLatLong(lat, long) {
 			for(var i=json.length-1; i>=0; i--) {
 				val = json[i];
 
-				if (!val.active)
+				if (!val.active) {
 					continue;
-				else
+				} else {
 					convertChamber(val);
+				}
 
 				// For search
-				window.docReps.push({ voteCellId: val.leg_id + "_vote", voteRowId: val.leg_id + "_voteRow", leg_id: val.leg_id });
-				element("district_" + val.chamber).value = val.district;
-				setCookie("ir_district_" + val.chamber, val.district, 365);
+				window.ir.docReps.push({ voteCellId: val.leg_id + "_vote", voteRowId: val.leg_id + "_voteRow", leg_id: val.leg_id });
+				if (val.chamber === "House") {
+					window.ir.districthouse = val.district;
+					setCookie("ir_district_house", val.district, 365);
+				} else {
+					window.ir.districtsenate = val.district;
+					setCookie("ir_district_senate", val.district, 365);
+				}
 
 				displayLegislator(val);
 			}
@@ -210,23 +215,23 @@ function ajaxOpenStatesGetLegislatorsFromLatLong(lat, long) {
 
 // Use the state and districts to search from their legislator
 function getLegislatorFromStateAndDistricts(state, house_district, senate_district) {
-	window.repsLoaded = false;
+	window.ir.repsLoaded = false;
 	clearInfo();
-	window.docReps = [];
+	window.ir.docReps = [];
 	element("name").innerHTML = "<table id='legInfo' border='1' cellpadding='5'><thead><tr style='font-style: italic; background-color: " + color_yellow + ";'><th>Chamber</th><th>Party</th><th>Name</th><th>Email</th><th>Vote</th></tr></thead><tbody id='legInfoBody'></tbody></table>";
 
 	setCookie("ir_state", state, 365);
-	element("state").value = state;
+	window.ir.state = state;
 
-	// House chamber (house)
-	ajaxOpenStatesGetHouse(state, house_district);
+	// house chamber (house)
+	ajaxOpenStatesGethouse(state, house_district);
 
-	// Senate chamber (senate)
-	ajaxOpenStatesGetSenate(state, senate_district);
+	// senate chamber (senate)
+	ajaxOpenStatesGetsenate(state, senate_district);
 }
 
 // Get the congressman from the current state and district
-function ajaxOpenStatesGetHouse(state, house_district) {
+function ajaxOpenStatesGethouse(state, house_district) {
 	$.ajax({
 		url: 'http://openstates.org/api/v1/legislators/?state=' + state + '&district=' + house_district + 
 				'&active=true&chamber=lower&apikey=18cdbb31b096462985cf408a5a41d3af',
@@ -243,9 +248,9 @@ function ajaxOpenStatesGetHouse(state, house_district) {
 					convertChamber(val);
 
 				// For search
-				window.docReps.push({ voteCellId: val.leg_id + "_vote", voteRowId: val.leg_id + "_voteRow", leg_id: val.leg_id });
-				element("district_House").value = val.district;
-				setCookie("ir_district_House", val.district, 365);
+				window.ir.docReps.push({ voteCellId: val.leg_id + "_vote", voteRowId: val.leg_id + "_voteRow", leg_id: val.leg_id });
+				window.ir.districthouse = val.district;
+				setCookie("ir_district_house", val.district, 365);
 
 				displayLegislator(val);
 			}
@@ -257,7 +262,7 @@ function ajaxOpenStatesGetHouse(state, house_district) {
 }
 
 // Get the senator from the current state and district
-function ajaxOpenStatesGetSenate(state, senate_district) {
+function ajaxOpenStatesGetsenate(state, senate_district) {
 	$.ajax({
 		url: 'http://openstates.org/api/v1/legislators/?state=' + state + '&district=' + senate_district + 
 				'&active=true&chamber=upper&apikey=18cdbb31b096462985cf408a5a41d3af',
@@ -274,9 +279,9 @@ function ajaxOpenStatesGetSenate(state, senate_district) {
 					convertChamber(val);
 
 				// For search
-				window.docReps.push({ voteCellId: val.leg_id + "_vote", voteRowId: val.leg_id + "_voteRow", leg_id: val.leg_id });
-				element("district_Senate").value = val.district;
-				setCookie("ir_district_Senate", val.district, 365);
+				window.ir.docReps.push({ voteCellId: val.leg_id + "_vote", voteRowId: val.leg_id + "_voteRow", leg_id: val.leg_id });
+				window.ir.districtsenate = val.district;
+				setCookie("ir_district_senate", val.district, 365);
 
 				displayLegislator(val);
 			}
@@ -293,7 +298,7 @@ function checkDoneLoading() {
 		return false;
 
 	// Display and tell of update reps
-	window.repsLoaded = true;
+	window.ir.repsLoaded = true;
 	locationSavedMessage();
 
 	// Check for URL param
@@ -329,13 +334,14 @@ function clearOldBill() {
 	element("sources").innerHTML = "";
 	element("bill_desc").innerHTML = "";
 
+	var docReps = window.ir.docReps;
 	for (var i=0; i<docReps.length; i++) {
-		var cellElmnt = element(window.docReps[i].voteCellId);
+		var cellElmnt = element(docReps[i].voteCellId);
 		if (cellElmnt != null)
 			cellElmnt.innerHTML = "N/A";
 
 		// Set default row background color
-		var rowElmnt = element(window.docReps[i].voteRowId);
+		var rowElmnt = element(docReps[i].voteRowId);
 		if (rowElmnt != null)
 			rowElmnt.bgColor = "white";
 	}
@@ -344,56 +350,124 @@ function clearOldBill() {
 // Update the cookies with the latest info
 function updateCookies() {
 	var locChange = false,
-		state = element("state").value.toUpperCase(),
-		district_House = element("district_House").value,
-		district_Senate = element("district_Senate").value;
+		state = window.ir.state.toUpperCase(),
+		district_house = window.ir.districthouse,
+		district_senate = window.ir.districtsenate;
 
 	if (getCookie("ir_state") != state) {
-		setCookie("ir_state", element("state").value.toUpperCase(), 365);
+		setCookie("ir_state", state, 365);
 		locChange = true;
 	}
-	if (getCookie("ir_district_House") != district_House) {
-		setCookie("ir_district_House", district_House, 365);
+	if (getCookie("ir_district_house") != district_house) {
+		setCookie("ir_district_house", district_house, 365);
 		locChange = true;
 	}
-	if (getCookie("ir_district_Senate") != district_Senate) {
-		setCookie("ir_district_Senate", district_Senate, 365);
+	if (getCookie("ir_district_senate") != district_senate) {
+		setCookie("ir_district_senate", district_senate, 365);
 		locChange = true;
 	}
-	if (locChange) getLegislatorFromStateAndDistricts(state, district_House, district_Senate);
+	
+	if (locChange) {
+		getLegislatorFromStateAndDistricts(state, district_house, district_senate);
+	}
+}
+
+function search() {
+	if (window.ir.repsLoaded !== true) {
+		element("bill_desc").innerHTML = "Still trying to load your local representatives";
+		return;
+	} else if (window.ir.searchingBill) {
+		element("bill_desc").innerHTML = "Loading <i>" + window.ir.searchingBill + "</i> already...";
+		return;
+	}
+
+	window.ir.searchingBill = formatBill(element("bill_id").value);
+	clearInfo();
+
+	// Update state and district cookies if different
+	updateCookies();
+
+	element("bill_desc").innerHTML = "Loading <i>" + window.ir.searchingBill + "</i>...";
+
+	// Remove old timer and add a new one
+	createNewTimeout(function() { 
+			window.ir.searchingBill = undefined;
+			element("bill_desc").innerHTML = "Load bill timed out. Are you sure you entered a valid bill?";
+		}, 10000);
+
+	// Submit the search string to open states
+	var state = window.ir.state.toUpperCase();
+	ajaxOpenStatesGetBill(state, window.ir.searchingBill);
+}
+
+function ajaxOpenStatesGetBill(state, bill_id) {
+	$.ajax({
+		url: "http://openstates.org/api/v1/bills/?state=" + state + "&q=" + bill_id + "&search_window=session&page=1" +
+					"&fields=actions.type,actions.date,votes.date,votes.yes_votes,votes.no_votes,votes.other_votes,title,bill_id,chamber,sources&apikey=18cdbb31b096462985cf408a5a41d3af",
+		dataType: 'jsonp',
+		success: function(json) {
+			var lng = json.length;
+			if (lng <= 0) {
+				element("bill_desc").innerHTML = "No bill found with the search '" + bill_id + "'.";
+
+				// Some error helping
+				if (bill_id.length > 1) {
+					var firstChar = bill_id.charAt(0).toUpperCase();
+					if (firstChar === 'H') {
+						element("bill_desc").innerHTML += " If you're tring to search for a house bill use HB.";
+					} else if (firstChar === 'S') {
+						element("bill_desc").innerHTML += " If you're tring to search for a senate bill use SB.";
+					}
+				}
+				// Clear the timeout timer
+				window.clearTimeout(window.submitTimer);
+			} else {
+				window.clearTimeout(window.submitTimer);
+				window.ir.lastSearchJson = json;
+				
+				displayBills(0);
+			}
+			
+			window.ir.searchingBill = "";
+		},
+		error: function() { 
+			window.ir.searchingBill = "";
+			window.alert("Error connecting to Open States API."); 
+		}
+	});
 }
 
 // Called to display the bill
 //   jsonBillId: The bill index of the json to display in detail
 function displayBills(jsonBillId) {
-	if (window.lastSearchJson.length > 1) {
+	if (window.ir.lastSearchJson.length > 1) {
 		element("other_bills").innerHTML = "<p><h6>Other matching bills:</h6><ul>";
 		
-		var len = window.lastSearchJson.length - 1;
+		var len = window.ir.lastSearchJson.length - 1;
 		for (var i=0; i<len; i++) {
-			element("other_bills").innerHTML += "<li><a id='linkbill_" + i + "' href='javascript:switchToBill(" + i + ");'>" + window.lastSearchJson[i].title + "</a></li>";
+			element("other_bills").innerHTML += "<li><a id='linkbill_" + i + "' href='javascript:switchToBill(" + i + ");'>" + window.ir.lastSearchJson[i].title + "</a></li>";
 		}
 	}
 	
-	window.oldBill = jsonBillId;
+	window.ir.lastBillId = jsonBillId;
 	switchToBill(jsonBillId);
 }
 
 function switchToBill(jsonBillId) {
-	var oldBill = element("linkbill_" + window.oldBill);
+	var oldBill = element("linkbill_" + window.ir.lastBillId);
 	if (oldBill != null)
 		oldBill.style.fontWeight = "normal";
 
-	window.oldBill = jsonBillId;
+	window.ir.lastBillId = jsonBillId;
 	
-	var newBill = element("linkbill_" + window.oldBill);
+	var newBill = element("linkbill_" + window.ir.lastBillId);
 	if (newBill != null)
 		newBill.style.fontWeight = "bold";
 
 	clearOldBill();
 	$(document).scrollTop($("#info_anchor").offset().top);
 
-	tableJson = window.lastSearchJson[jsonBillId];
+	tableJson = window.ir.lastSearchJson[jsonBillId];
 	// No vote yet
 	if (tableJson.votes.length <= 0) {
 		element("bill_desc").innerHTML = "<b>No votes</b> on <i>" + tableJson.title + " (" + tableJson.bill_id + ")</i>.";
@@ -403,8 +477,8 @@ function switchToBill(jsonBillId) {
 		convertChamber(tableJson);
 
 		element("bill_desc").innerHTML = "Latest vote on <i>" + tableJson.title + " (" + tableJson.bill_id + ")</i> of the " + tableJson.chamber + ". <br />";
-		displaySources(tableJson.sources);
 		displayVotes(tableJson);
+		displaySources(tableJson.sources);
 	}
 }
 
@@ -416,6 +490,8 @@ function displayVotes(tableJson) {
 			if (actType === "bill:passed" || actType === "bill:failed") {
 				var actionDate = action.date.split(' ')[0];
 				actionDates.push(actionDate);
+			} else {
+				console.log(actType);
 			}
 		});
 	});
@@ -427,8 +503,8 @@ function displayVotes(tableJson) {
 			return;
 	
 		// Find representative's vote
-		for (var i=0; i<window.docReps.length; i++) {
-			if (checkVoteForRep(window.docReps[i], vote.yes_votes, vote.no_votes, vote.other_votes))
+		for (var i=0; i<window.ir.docReps.length; i++) {
+			if (checkVoteForRep(window.ir.docReps[i], vote.yes_votes, vote.no_votes, vote.other_votes))
 				break;
 		}
 	});
@@ -474,71 +550,6 @@ function displaySources(sources) {
 	mss += "</h6>";
 
 	element("sources").innerHTML = mss;
-}
-
-function search() {
-	if (window.repsLoaded !== true) {
-		element("bill_desc").innerHTML = "Still trying to load your local representatives";
-		return;
-	} else if (window.searchingBill) {
-		element("bill_desc").innerHTML = "Loading <i>" + window.searchingBill + "</i> already...";
-		return;
-	}
-
-	window.searchingBill = formatBill(element("bill_id").value);
-	clearInfo();
-
-	// Update state and district cookies if different
-	updateCookies();
-
-	element("bill_desc").innerHTML = "Loading <i>" + window.searchingBill + "</i>...";
-
-	// Remove old timer and add a new one
-	createNewTimeout(function() { 
-			window.searchingBill = "";
-			element("bill_desc").innerHTML = "Load bill timed out. Are you sure you entered a valid bill?";
-		}, 10000);
-
-	// Submit the search string to open states
-	var state = element("state").value.toUpperCase();
-	ajaxOpenStatesGetBill(state, window.searchingBill);
-}
-
-function ajaxOpenStatesGetBill(state, bill_id) {
-	$.ajax({
-		url: "http://openstates.org/api/v1/bills/?state=" + state + "&q=" + bill_id + "&search_window=session&page=1" +
-					"&fields=actions.type,actions.date,votes.date,votes.yes_votes,votes.no_votes,votes.other_votes,title,bill_id,chamber,sources&apikey=18cdbb31b096462985cf408a5a41d3af",
-		dataType: 'jsonp',
-		success: function(json) {
-			var lng = json.length;
-			if (lng <= 0) {
-				element("bill_desc").innerHTML = "No bill found with the search '" + bill_id + "'.";
-
-				// Some error helping
-				if (bill_id.length > 1) {
-					var firstChar = bill_id.charAt(0).toUpperCase();
-					if (firstChar === 'H') {
-						element("bill_desc").innerHTML += " If you're tring to search for a house bill use HB.";
-					} else if (firstChar === 'S') {
-						element("bill_desc").innerHTML += " If you're tring to search for a senate bill use SB.";
-					}
-				}
-				// Clear the timeout timer
-				window.clearTimeout(window.submitTimer);
-			} else {
-				window.clearTimeout(window.submitTimer);
-				window.lastSearchJson = json;
-				
-				displayBills(0);
-			}
-			
-			window.searchingBill = "";
-		},
-		error: function() { 
-			window.searchingBill = "";
-			window.alert("Error connecting to Open States API."); 
-		}
-	});
 }
 
 ///////////////////////
