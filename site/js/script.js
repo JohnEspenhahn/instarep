@@ -54,7 +54,7 @@ function codeAddress() {
 				clearCookies();
 				
 				setCookie("ir_state", state, 365);
-				getLegislatorsFromLatLong(results[0].geometry.location.jb, results[0].geometry.location.kb);
+				getLegislatorsFromLatLong(results[0].geometry.location.lat(), results[0].geometry.location.lng());
 				
 				gotoSearchTab();
 			} else {
@@ -167,7 +167,6 @@ function getLegislatorsFromLatLong(lat, long) {
 	clearInfo();
 	window.docReps = [];
 
-	element("name").innerHTML = "<table id='legInfo' border='1' cellpadding='5'><thead><tr style='font-style: italic; background-color: " + color_yellow + ";'><th>Chamber</th><th>Party</th><th>Name</th><th>Email</th><th>Vote</th></tr></thead><tbody id='legInfoBody'></tbody></table>";
 	ajaxOpenStatesGetLegislatorsFromLatLong(lat, long);
 }
 
@@ -178,12 +177,14 @@ function ajaxOpenStatesGetLegislatorsFromLatLong(lat, long) {
 		dataType: 'jsonp',
 		success: function(json) {
 			var lng = json.length, val = null;
-
+			
 			window.docReps = [];
 			if (lng <= 0) {
 				element("name").innerHTML = "No representatives found.";
 				return;
 			}
+			
+			element("name").innerHTML = "<table id='legInfo' border='1' cellpadding='5'><thead><tr style='font-style: italic; background-color: " + color_yellow + ";'><th>Chamber</th><th>Party</th><th>Name</th><th>Email</th><th>Vote</th></tr></thead><tbody id='legInfoBody'></tbody></table>";
 
 			for(var i=json.length-1; i>=0; i--) {
 				val = json[i];
