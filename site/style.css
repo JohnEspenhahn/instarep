@@ -104,4 +104,11 @@ div .message {
 	td:nth-of-type(3):before { content: "Name"; }
 	td:nth-of-type(4):before { content: "Email"; }
 	td:nth-of-type(5):before { content: "Vote"; }
+
+	.form-horizontal .control-label{
+		text-align:center !important;
+	}
+	.form-horizontal .controls{
+		text-align:center;
+	}
 }
