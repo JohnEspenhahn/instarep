@@ -484,7 +484,24 @@ function switchToBill(jsonBillId) {
 
 // Display the vote for each representative
 function displayVotes(tableJson) {
+	var actionDates = [];
+	tableJson.actions.forEach(function(action) {
+		action.type.forEach(function(actType) {
+			if (actType === "bill:passed" || actType === "bill:failed") {
+				var actionDate = action.date.split(' ')[0];
+				actionDates.push(actionDate);
+			} else {
+				console.log(actType);
+			}
+		});
+	});
+
 	tableJson.votes.forEach(function(vote) {
+		// Check that this is a bill we care about
+		var voteDate = vote.date.split(' ')[0];
+		if ($.inArray(voteDate, actionDates) === -1)
+			return;
+	
 		// Find representative's vote
 		for (var i=0; i<window.ir.docReps.length; i++) {
 			if (checkVoteForRep(window.ir.docReps[i], vote.yes_votes, vote.no_votes, vote.other_votes))
