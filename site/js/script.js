@@ -403,7 +403,7 @@ function search() {
 function ajaxOpenStatesGetBill(state, bill_id) {
 	$.ajax({
 		url: "http://openstates.org/api/v1/bills/?state=" + state + "&q=" + bill_id + "&search_window=session&page=1" +
-					"&fields=actions.type,actions.date,votes.date,votes.yes_votes,votes.no_votes,votes.other_votes,title,bill_id,chamber,sources&apikey=18cdbb31b096462985cf408a5a41d3af",
+					"&fields=votes.date,votes.type,votes.yes_votes,votes.no_votes,votes.other_votes,title,bill_id,chamber,sources&apikey=18cdbb31b096462985cf408a5a41d3af",
 		dataType: 'jsonp',
 		success: function(json) {
 			var lng = json.length;
@@ -484,28 +484,16 @@ function switchToBill(jsonBillId) {
 
 // Display the vote for each representative
 function displayVotes(tableJson) {
-	var actionDates = [];
-	tableJson.actions.forEach(function(action) {
-		action.type.forEach(function(actType) {
-			if (actType === "bill:passed" || actType === "bill:failed") {
-				var actionDate = action.date.split(' ')[0];
-				actionDates.push(actionDate);
-			} else {
-				console.log(actType);
-			}
-		});
-	});
-
 	tableJson.votes.forEach(function(vote) {
 		// Check that this is a bill we care about
-		var voteDate = vote.date.split(' ')[0];
-		if ($.inArray(voteDate, actionDates) === -1)
-			return;
-	
-		// Find representative's vote
-		for (var i=0; i<window.ir.docReps.length; i++) {
-			if (checkVoteForRep(window.ir.docReps[i], vote.yes_votes, vote.no_votes, vote.other_votes))
-				break;
+		if (!vote.type.match(/amendment/)) {
+			// Find representative's vote
+			for (var i=0; i<window.ir.docReps.length; i++) {
+				if (checkVoteForRep(window.ir.docReps[i], vote.yes_votes, vote.no_votes, vote.other_votes))
+					break;
+			}
+		} else {
+			console.log(vote);
 		}
 	});
 }
